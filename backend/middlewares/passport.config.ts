@@ -5,7 +5,7 @@ import {
   JwtFromRequestFunction,
 } from 'passport-jwt';
 import { settings } from '../config/settings';
-import User from '@models/User';
+import User from '@models/user.model';
 import catchAsync from '@utils/catchAsync';
 import AppError from '@utils/appError';
 import { Request } from 'express';

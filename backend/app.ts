@@ -14,7 +14,7 @@ import hpp from 'hpp';
 import cors from 'cors';
 import compression from 'compression';
 // import xss from 'xss-clean';
-import { globalErrorHandler } from '@controllers/error.controller';
+import { globalErrorHandler, notFound } from '@middlewares/error.middleware';
 // import csurf from 'csurf';
 import AppError from '@utils/appError';
 import userRouter from '@routes/user.routes';
@@ -42,7 +42,7 @@ const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again in an hour!',
 });
-app.use('/api', limiter);
+// app.use('/api', limiter);
 app.use(json({ limit: '10kb' }));
 app.use(urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -61,18 +61,24 @@ app.use(
   })
 );
 app.use(compression());
+
 app.use(passport.initialize());
-passport.use(JWTStrategy);
+
+passport.use('jwt', JWTStrategy);
 
 app.use((req: any, res: Response, next: NextFunction) => {
   req.requestTime = new Date().toISOString();
+
   next();
 });
 
 //Routes
 app.use(routes);
-//for other routes
 
+//for other routes
+app.all('*', notFound);
+
+//errors handler
 app.use(globalErrorHandler);
-//and the other middleware like morgan used in the  all routes
+
 export default app;

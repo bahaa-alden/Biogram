@@ -28,6 +28,9 @@ const handleJWTError = () =>
 const handleJWTExpiredError = () =>
   new AppError(401, 'Your token has expired!, please log in again');
 
+const handelPassportError = () =>
+  new AppError(401, 'You are not logged in, please log in to get access.');
+
 //development error
 const sendErrorDev = (err: any, req: Request, res: Response) => {
   //A) Api error
@@ -59,7 +62,7 @@ const sendErrorProd = (err: any, req: Request, res: Response) => {
     .json({ status: 'error', message: 'Something went very wrong' });
 };
 
-export const globalErrorHandler = (
+const globalErrorHandler = (
   err: any,
   req: Request,
   res: Response,
@@ -77,6 +80,16 @@ export const globalErrorHandler = (
     if (error.name === 'ValidationError') error = handleValidatorErrorDB(error);
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
+    if (err.message === 'Unauthorized') error = handelPassportError();
     sendErrorProd(error, req, res);
   }
 };
+
+const notFound = (req: Request, res: Response, next: NextFunction) => {
+  //req.originalURl mean the route was sent
+  return next(
+    new AppError(400, `Can't find ${req.originalUrl} on this server`)
+  ); //skip all middleware and go to the errors handler
+};
+
+export { notFound, globalErrorHandler };

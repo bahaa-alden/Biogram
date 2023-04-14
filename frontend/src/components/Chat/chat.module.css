@@ -1,0 +1,25 @@
+
+.message {
+  display: flex;
+  width: 100%;
+  margin: 2px 0;
+  align-items: flex-end;
+}
+.sender {
+  justify-content: flex-end;
+}
+.receiver {
+  justify-content: flex-start;
+}
+.content {
+  border-radius: 10px;
+  padding: 5px 8px;
+  max-width: 70%;
+  color: white;
+}
+.sender .content {
+  background: rgb(10 85 135);
+}
+.receiver .content {
+  background: rgb(8 30 49);
+}

@@ -1,11 +1,11 @@
-import { Schema, model, Model, Query, Document, DocumentQuery } from 'mongoose';
+import { Schema, model, DocumentQuery } from 'mongoose';
 import validator from 'validator';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { settings } from '@config/settings';
+import { settings } from './../config/settings';
 import { UserModel, UserDoc, IUser } from '../types/user.type';
-const userSchema = new Schema<IUser, UserModel, any>(
+const userSchema = new Schema<UserDoc, UserModel, any>(
   {
     name: {
       type: String,
@@ -42,6 +42,7 @@ const userSchema = new Schema<IUser, UserModel, any>(
   {
     toJSON: { virtuals: true, versionKey: false },
     toObject: { virtuals: true, versionKey: false },
+    timestamps: true,
   }
 );
 
@@ -64,13 +65,10 @@ userSchema.pre('save', function (next) {
   next();
 });
 
-userSchema.pre<Query<any, DocumentQuery<any, UserDoc>>>(
-  /^find/,
-  function (next) {
-    this.find({ active: { $ne: false } });
-    next();
-  }
-);
+userSchema.pre<DocumentQuery<any, UserDoc>>(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
 
 //we did this operation in the model to apply the concept of fat model && fit controller
 //for matching the password with the encrypted one
