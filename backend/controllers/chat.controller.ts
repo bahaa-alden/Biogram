@@ -26,7 +26,7 @@ export const accessChat = catchAsync(
     if (isChat) {
       return res.status(200).json({ data: isChat });
     }
-    const chatData: IChat = {
+    const chatData: any = {
       isGroup: false,
       users: [req.user?.id, userId],
       name: 'Sender',
@@ -38,7 +38,6 @@ export const accessChat = catchAsync(
 
 export const getAllChats = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // console.log(req.user);
     const chats = await Chat.find({
       users: { $elemMatch: { $eq: req.user?._id } },
     }).sort({ updatedAt: -1 });
@@ -55,13 +54,14 @@ export const createGroupChat = catchAsync(
       return next(new AppError(400, 'Please provide users and group name'));
 
     users.push(req.user?._id);
-    const chatData: IChat = {
+    const chatData: any = {
       users,
       name,
       isGroup: true,
       groupAdmin: req.user?._id,
     };
     const chatGroup = await Chat.create(chatData);
+    chatGroup.createNotification(users);
     res.status(201).json({ status: 'success', data: chatGroup });
   }
 );
@@ -103,6 +103,11 @@ export const addToGroup = catchAsync(
     if (!chat) {
       return next(new AppError(404, `No chat found with that ID`));
     }
+
+    let users: any = [userId];
+
+    chat.createNotification(users);
+
     res.status(200).json({
       status: 'success',
       data: {
@@ -123,8 +128,14 @@ export const removeFromGroup = catchAsync(
         runValidators: true,
       }
     );
+
     if (!chat) {
       return next(new AppError(404, `No chat found with that ID`));
+    }
+
+    if (userId === chat?.groupAdmin.id) {
+      chat.groupAdmin = chat.users[0];
+      await chat.save({ validateBeforeSave: false });
     }
     res.status(200).json({
       status: 'success',

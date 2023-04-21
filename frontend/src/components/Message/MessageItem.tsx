@@ -10,7 +10,6 @@ import {
 import ProfileModel from '../miscellaneous/ProfileModel';
 import { Avatar, Box, Tooltip } from '@chakra-ui/react';
 import colors from '../../utils/colors';
-import { motion } from 'framer-motion';
 
 function getBackgroundColor(user: any) {
   const index =
@@ -46,11 +45,7 @@ const getDateFormatted = (date: string): string => {
 function MessageItem({ message, messages, index }: any) {
   const { user, selectedChat } = chatState();
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      title={getDateFormatted(message.createdAt)}
+    <Box
       className={`${styles.message} ${
         user.id === message.sender.id ? styles.sender : styles.receiver
       }  }`}
@@ -77,34 +72,39 @@ function MessageItem({ message, messages, index }: any) {
           </Tooltip>
         </ProfileModel>
       )}
-      <span
-        className={`${styles.content} ${
-          user.id === message.sender.id ? styles.sender : styles.receiver
-        }  }`}
-        style={{
-          marginLeft: isSameSenderMargin(
-            messages,
-            message,
-            index,
-            user.id,
-            selectedChat.isGroup
-          ),
-          marginTop: isSameUser(messages, message, index) ? 1 : 10,
-        }}
+      <Tooltip
+        label={`${getDateFormatted(message.createdAt)}`}
+        placement={message.sender.id === user.id ? 'left-end' : 'right-end'}
       >
-        {showSenderName(messages, message, index, user.id) &&
-          selectedChat.isGroup && (
-            <p
-              style={{
-                color: `${getBackgroundColor(message.sender.name)}`,
-              }}
-            >
-              {message.sender.name}
-            </p>
-          )}
-        {message.content}
-      </span>
-    </motion.div>
+        <span
+          className={`${styles.content} ${
+            user.id === message.sender.id ? styles.sender : styles.receiver
+          }  }`}
+          style={{
+            marginLeft: isSameSenderMargin(
+              messages,
+              message,
+              index,
+              user.id,
+              selectedChat.isGroup
+            ),
+            marginTop: isSameUser(messages, message, index) ? 1 : 10,
+          }}
+        >
+          {showSenderName(messages, message, index, user.id) &&
+            selectedChat.isGroup && (
+              <p
+                style={{
+                  color: `${getBackgroundColor(message.sender.name)}`,
+                }}
+              >
+                {message.sender.name}
+              </p>
+            )}
+          {message.content}
+        </span>
+      </Tooltip>
+    </Box>
   );
 }
 

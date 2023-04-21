@@ -64,8 +64,10 @@ function Login({ bg, bgS }: any) {
         const userInfo = res.data.data.user;
         storage.storeToken(res.data.token);
         setUser(userInfo);
-        navigate('/chats');
-        setLoading(false);
+        setTimeout(function () {
+          navigate('/chats');
+          setLoading(false);
+        }, 100);
       }
     } catch (err: any) {
       toast({
@@ -115,28 +117,11 @@ function Login({ bg, bgS }: any) {
           colorScheme="blue"
           bg={bgS}
           width={'100%'}
-          style={{ marginTop: '15px',marginBottom:'5px' }}
+          style={{ marginTop: '15px', marginBottom: '5px' }}
           isLoading={loading}
           type="submit"
         >
           Log in
-        </Button>
-        <Button
-          colorScheme="blue"
-          width={'100%'}
-          bg={bgS}
-          onClick={() => {
-            dispatch({
-              type: InputActionKind.CHANGE_EMAIL,
-              payload: 'Guest@example.com',
-            });
-            dispatch({
-              type: InputActionKind.CHANGE_PASSWORD,
-              payload: 'test1111',
-            });
-          }}
-        >
-          Get Guest User credential
         </Button>
       </VStack>
     </form>

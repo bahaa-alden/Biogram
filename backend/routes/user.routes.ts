@@ -21,9 +21,11 @@ import {
 } from '@controllers/auth.controller';
 import { resizeUserImage, uploadUserPhoto } from '@middlewares/uploadingImage';
 import checkReqQuery from '@middlewares/checkSearch.middleware';
+import notificationRouter from '@routes/notification.routes';
 
 const router = Router();
 
+router.use('/:userId/notifications', notificationRouter);
 router.route('/signup').post(signup);
 router.route('/login').post(login);
 router.route('/forgotPassword').post(forgotPassword);
@@ -34,7 +36,7 @@ router.use(
   passport.authenticate('jwt', { session: false, failWithError: true })
 );
 
-router.route('/').get(checkReqQuery,getAllUsers);
+router.route('/').get(checkReqQuery, getAllUsers);
 router.route('/me').get(getMe, getUser);
 router.route('/updateMyPassword').patch(updateMyPassword);
 router.route('/updateMe').patch(uploadUserPhoto, resizeUserImage, updateMe);

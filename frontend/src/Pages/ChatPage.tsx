@@ -9,11 +9,20 @@ import { chatState } from '../Context/ChatProvider';
 function ChatPage() {
   const { user } = chatState();
   const [fetchAgain, setFetchAgain] = useState(false);
+  const [fetchNotificationsAgain, setFetchNotificationsAgain] = useState(false);
   const bg = useColorModeValue('white', 'black');
   const color = useColorModeValue('black', 'white');
+
   return (
     <div style={{ width: '100%' }}>
-      {user.id && <SideDrawer color={color} bg={bg} />}
+      {user.id && (
+        <SideDrawer
+          color={color}
+          bg={bg}
+          fetchNotificationsAgain={fetchNotificationsAgain}
+          setFetchNotificationsAgain={setFetchNotificationsAgain}
+        />
+      )}
       <Box
         display="flex"
         justifyContent="space-between"
@@ -27,6 +36,8 @@ function ChatPage() {
             bg={bg}
             fetchAgain={fetchAgain}
             setFetchAgain={setFetchAgain}
+            fetchNotificationsAgain={fetchNotificationsAgain}
+            setFetchNotificationsAgain={setFetchNotificationsAgain}
           />
         )}
       </Box>

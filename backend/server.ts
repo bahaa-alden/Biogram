@@ -20,15 +20,14 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-  console.log('connected to socket.io');
   socket.on('setup', (userData) => {
     socket.join(userData.id);
+    console.log(userData.id);
     socket.emit('connected');
   });
 
   socket.on('join chat', (room) => {
     socket.join(room);
-    console.log('join room', room);
   });
 
   socket.on('isTyping', ({ chatId, userId, userName }) => {
@@ -53,6 +52,21 @@ io.on('connection', (socket) => {
     chat.users.forEach((user: any) => {
       if (user.id !== userId) {
         socket.in(user.id).emit('group rename');
+      }
+    });
+  });
+  socket.on('group remove', ({ chat, userId, removedUser }) => {
+    chat.users.forEach((user: any) => {
+      if (user.id !== userId) {
+        socket.in(user.id).emit('group remove');
+      }
+    });
+    socket.in(removedUser).emit('group remove');
+  });
+  socket.on('group add', (chat) => {
+    chat.users.forEach((user: any) => {
+      if (user.id !== chat.groupAdmin.id) {
+        socket.in(user.id).emit('group add');
       }
     });
   });

@@ -1,6 +1,8 @@
 import { Schema, model } from 'mongoose';
 import { ChatModel, ChatDoc } from '../types/chat.type';
 import AppError from '@utils/appError';
+import { IUser } from '../types/user.type';
+import Notification from '@models/notification.model';
 
 const chatSchema = new Schema<ChatDoc, ChatModel, any>(
   {
@@ -32,9 +34,7 @@ const chatSchema = new Schema<ChatDoc, ChatModel, any>(
 chatSchema.pre('save', function (next) {
   if (!this.isModified('users')) return next();
   if (this.users.length < 3 && this.isGroup) {
-    return next(
-      new AppError('400', 'Group must contain 3 users including you')
-    );
+    return next(new AppError(400, 'Group must contain 3 users including you'));
   }
   next();
 });
@@ -57,5 +57,15 @@ chatSchema.post('save', async function () {
     .execPopulate();
 });
 
+chatSchema.methods.createNotification = async function (users: any) {
+  if (!this.isGroup) return;
+  users.forEach(async (user: any) => {
+    if (user === this.groupAdmin.id) return;
+    await Notification.create({
+      chat: this.id,
+      user,
+    });
+  });
+};
 const Chat = model<ChatDoc>('Chat', chatSchema);
 export default Chat;

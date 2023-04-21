@@ -5,7 +5,8 @@ export interface IChat {
   users: Schema.Types.ObjectId[];
   lastMessage?: Schema.Types.ObjectId | string;
   isGroup: boolean;
-  groupAdmin?: Schema.Types.ObjectId | string;
+  groupAdmin?: Schema.Types.ObjectId | any;
+  createNotification(userId: string): void;
 }
 
 export type ChatDoc = IChat & Document;

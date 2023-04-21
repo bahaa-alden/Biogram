@@ -113,8 +113,8 @@ function SignUp({ bg, bgS }: any) {
 
   return (
     <VStack bg={bg} spacing="5px">
-      <form onSubmit={submitHandler}>
-        <FormControl key={'name'} id="name" isRequired>
+      <form onSubmit={submitHandler} style={{ width: '100%' }}>
+        <FormControl pb="1" key={'name'} id="name" isRequired>
           <FormLabel>Name</FormLabel>
           <Input
             placeholder="Enter Your Name"
@@ -126,7 +126,7 @@ function SignUp({ bg, bgS }: any) {
             }}
           />
         </FormControl>
-        <FormControl id="email-sign" isRequired>
+        <FormControl pb="1" id="email-sign" isRequired>
           <FormLabel>Email</FormLabel>
           <Input
             type={'email'}
@@ -139,7 +139,7 @@ function SignUp({ bg, bgS }: any) {
             }}
           />
         </FormControl>
-        <FormControl id="password-sign" isRequired>
+        <FormControl pb="1" id="password-sign" isRequired>
           <FormLabel>Password</FormLabel>
           <Input
             placeholder="Enter Your Password"
@@ -152,7 +152,7 @@ function SignUp({ bg, bgS }: any) {
             type="password"
           />
         </FormControl>
-        <FormControl id="passwordConfirm" isRequired>
+        <FormControl pb="2" id="passwordConfirm" isRequired>
           <FormLabel>Password Confirm</FormLabel>
           <Input
             placeholder="Password Confirm"
@@ -165,9 +165,20 @@ function SignUp({ bg, bgS }: any) {
             }}
           />
         </FormControl>
-        <FormControl id="pic">
-          <FormLabel>Upload Your Picture</FormLabel>
+        <FormControl pb="1" id="pic">
+          <FormLabel
+            px="1"
+            borderRadius={'2'}
+            cursor={'pointer'}
+            textDecoration={'underline'}
+            color="rgb(27 145 166)"
+            width={'fit-content'}
+            _hover={{ bg: '#2b6cb0', color: 'white' }}
+          >
+            Upload Your Picture
+          </FormLabel>
           <Input
+            display={'none'}
             type="file"
             accept="image/*"
             p={2}

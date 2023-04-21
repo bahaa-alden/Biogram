@@ -24,8 +24,9 @@ function HomePage() {
     <Container>
       <Button
         position="absolute"
-        left="10px"
-        top="10px"
+        left="2px"
+        top="0px"
+        p={'2px'}
         onClick={toggleColorMode}
       >
         {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
@@ -41,7 +42,7 @@ function HomePage() {
         bg={bg}
       >
         <Text fontSize={'4xl'} fontFamily={'work sans'}>
-          Talk-A-Tive
+          Bio-Gram
         </Text>
       </Box>
       <Box bg={bg} w="100" p="4" borderRadius={'lg'} borderWidth="1px">

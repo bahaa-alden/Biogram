@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { chatState } from '../../Context/ChatProvider';
 import { Fragment } from 'react';
 import {
@@ -8,7 +8,6 @@ import {
   Input,
   Spinner,
   Text,
-  useColorModeValue,
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import UpdateGroupChatModel from '../miscellaneous/UpdateGroupChatModel';
@@ -18,36 +17,57 @@ import { storage } from '../../utils/storage';
 import axios, { AxiosRequestConfig } from 'axios';
 import { useToast } from '@chakra-ui/react';
 import { Chat, Message } from '../../types/interfaces';
-import Styles from './chat.module.css';
 import ScrollableChat from './ScrollableChat';
 import io, { Socket } from 'socket.io-client';
 import Lottie from 'lottie-react';
 import animationData from './../../assets/132124-hands-typing-on-keyboard.json';
 
 const ENDPOINT = 'http://127.0.0.1:5000/';
-let socket: Socket, selectedChatCompare: Chat;
 
-function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
+let socket: Socket, selectedChatCompare: any;
+function SingleChat({
+  fetchAgain,
+  setFetchAgain,
+  color,
+  bg,
+  fetchNotificationsAgain,
+  setFetchNotificationsAgain,
+}: any) {
   const [messages, setMessages] = useState<Message[]>([]);
-
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const toast = useToast();
-  const { notification, setNotification, user, selectedChat, setSelectedChat } =
-    chatState();
-  const [socketConnected, setSocketConnected] = useState(false);
+  const { user, selectedChat, setSelectedChat } = chatState();
   const [isTyping, setIsTyping] = useState(false);
   const [userTyping, setUserTyping] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 14;
+  const [previousSelectedChat, setPreviousSelectedChat] = useState<Chat>();
   const [isEndOfMessages, setIsEndOfMessages] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [socketConnected, setSocketConnected] = useState(false);
 
+  // Join the socket to the chat room
   useEffect(() => {
     socket = io(ENDPOINT);
     socket.emit('setup', user);
     socket.on('connected', () => setSocketConnected(true));
   }, []);
+
+  useEffect(() => {
+    if (!socketConnected) return;
+
+    socket.emit('isTyping', {
+      chatId: selectedChat.id,
+      userId: user.id,
+      userName: user.name,
+    });
+    const timeout = setTimeout(() => {
+      socket.emit('stop typing', { chatId: selectedChat.id, userId: user.id });
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [newMessage]);
 
   const fetchMessages = async () => {
     if (!selectedChat.users.length) return;
@@ -65,8 +85,16 @@ function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
           return [message, ...prevMessages];
         });
       });
+
+      if (page === 1) {
+        setTimeout(function () {
+          scrollToBottom();
+        }, 0);
+      }
+
       setPage(page + 1);
       setIsEndOfMessages(data.length < pageSize);
+
       socket.emit('join chat', selectedChat.id);
     } catch (error) {
       toast({
@@ -80,22 +108,40 @@ function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
     setLoading(false);
   };
 
-  const handleScroll = () => {
-    if (
-      containerRef.current &&
-      containerRef.current.scrollTop === 0 &&
-      !loading &&
-      !isEndOfMessages
-    ) {
-      fetchMessages();
+  const handleScroll = async () => {
+    if (!containerRef.current || loading || isEndOfMessages) return;
+    const { scrollTop, scrollHeight } = containerRef.current;
+    if (scrollTop <= 0) {
+      await fetchMessages();
+      setTimeout(function () {
+        if (containerRef.current) {
+          const newScrollHeight = containerRef.current.scrollHeight;
+          containerRef.current.scrollTop =
+            newScrollHeight - scrollHeight + scrollTop;
+        }
+      }, 0);
     }
   };
 
+  const scrollToBottom = () => {
+    setTimeout(function () {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+    }, 0);
+  };
+
   useEffect(() => {
-    fetchMessages();
+    if (selectedChat !== previousSelectedChat) {
+      setPage(1);
+      setIsEndOfMessages(false);
+      setMessages([]);
+      fetchMessages();
+      setPreviousSelectedChat(selectedChat);
+    }
     selectedChatCompare = selectedChat;
     // Listen for isTyping events from the server
-    socket.on('isTyping', ({ chatId, userId, userName }) => {
+    socket.on('isTyping', ({ chatId, userId, userName }: any) => {
       if (chatId === selectedChatCompare.id && userId !== user.id) {
         setIsTyping(true);
         setUserTyping(() => {
@@ -104,7 +150,7 @@ function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
         });
       }
     });
-    socket.on('stop typing', ({ chatId, userId }) => {
+    socket.on('stop typing', ({ chatId, userId }: any) => {
       if (chatId === selectedChatCompare.id && userId !== user.id) {
         setIsTyping(false);
       }
@@ -143,6 +189,7 @@ function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
 
         setNewMessage('');
         const { data } = await (await axios(config)).data.data;
+        scrollToBottom();
         socket.emit('new message', data);
         setMessages([...messages, data]);
       } catch (err: any) {
@@ -155,6 +202,7 @@ function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
           position: 'bottom',
         });
       }
+      scrollToBottom();
       socket.emit('stop typing', { chatId: selectedChat.id, userId: user.id });
     }
   };
@@ -165,10 +213,8 @@ function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
         !selectedChatCompare.id ||
         selectedChatCompare.id !== newMessageReceived.chat.id
       ) {
-        if (!notification.includes(newMessageReceived)) {
-          setNotification([newMessageReceived, ...notification]);
-          setFetchAgain(!fetchAgain);
-        }
+        setFetchAgain(!fetchAgain);
+        setFetchNotificationsAgain(!fetchNotificationsAgain);
       } else {
         setMessages([...messages, newMessageReceived]);
       }
@@ -176,22 +222,14 @@ function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
     socket.on('group rename', () => {
       setFetchAgain(!fetchAgain);
     });
-  });
-  // Join the socket to the chat room
-  useEffect(() => {
-    if (!socketConnected) return;
-
-    socket.emit('isTyping', {
-      chatId: selectedChat.id,
-      userId: user.id,
-      userName: user.name,
+    socket.on('group remove', () => {
+      setFetchAgain(!fetchAgain);
     });
-    const timeout = setTimeout(() => {
-      socket.emit('stop typing', { chatId: selectedChat.id, userId: user.id });
-    }, 3000);
-
-    return () => clearTimeout(timeout);
-  }, [newMessage]);
+    socket.on('group add', () => {
+      setFetchAgain(!fetchAgain);
+      setFetchNotificationsAgain(!fetchNotificationsAgain);
+    });
+  });
 
   return (
     <Fragment>
@@ -199,7 +237,7 @@ function SingleChat({ fetchAgain, setFetchAgain, color, bg }: any) {
         <>
           <Text
             bg={bg}
-            fontSize={{ base: '28px', md: '30px' }}
+            fontSize={{ base: '25px', md: '30px', sm: '28px' }}
             pb="3"
             px="2"
             w="100%"

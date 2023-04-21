@@ -5,7 +5,6 @@ import {
   Button,
   useToast,
   Stack,
-  Avatar,
   Text,
   useColorModeValue,
 } from '@chakra-ui/react';
@@ -13,12 +12,18 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { storage } from '../../utils/storage';
 import { AddIcon } from '@chakra-ui/icons';
 import ChatLoading from '../../utils/ChatLoading';
-import { getSender, isLastMessage } from '../../config/chatLogics';
+import { getSender } from '../../config/chatLogics';
 import GroupChatModel from '../miscellaneous/GroupChatModel';
 import { Chat } from '../../types/interfaces';
+import io, { Socket } from 'socket.io-client';
+const ENDPOINT = 'http://127.0.0.1:5000/';
+let socket: Socket;
 
-function MyChat({ fetchAgain, bg, color }: any) {
+function MyChat({ fetchAgain, bg }: any) {
   const { selectedChat, setSelectedChat, user, chats, setChats } = chatState();
+  const bgC = useColorModeValue('#38b2ac', 'rgb(10 85 135)');
+  const [socketConnected, setSocketConnected] = useState(false);
+
   const toast = useToast();
   const fetchChats = async () => {
     try {
@@ -43,6 +48,11 @@ function MyChat({ fetchAgain, bg, color }: any) {
     }
   };
 
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit('setup', user);
+    socket.on('connected', () => setSocketConnected(true));
+  }, []);
   useEffect(() => {
     fetchChats();
   }, [fetchAgain]);
@@ -73,7 +83,7 @@ function MyChat({ fetchAgain, bg, color }: any) {
         fontFamily="work sans"
       >
         <b> My Chats</b>
-        <GroupChatModel>
+        <GroupChatModel socket={socket}>
           <Button
             display="flex"
             px={{ base: '3', md: '1', lg: '3' }}
@@ -98,9 +108,14 @@ function MyChat({ fetchAgain, bg, color }: any) {
           <Stack overflowY="scroll">
             {chats.map((chat: Chat) => (
               <Box
-                onClick={() => setSelectedChat(chat)}
+                onClick={() => {
+                  setSelectedChat({ users: [], groupAdmin: {} });
+                  setTimeout(function () {
+                    setSelectedChat(chat);
+                  }, 100);
+                }}
                 cursor="pointer"
-                bg={selectedChat === chat ? '#38b2ac' : '#e8e8e8'}
+                bg={selectedChat === chat ? `${bgC}` : '#e8e8e8'}
                 color={selectedChat === chat ? 'white' : 'black'}
                 px="3"
                 py="2"
@@ -110,13 +125,17 @@ function MyChat({ fetchAgain, bg, color }: any) {
                 <Text fontSize={'18px'}>
                   {!chat.isGroup ? getSender(user, chat.users) : chat.name}
                 </Text>
-                <span style={{ fontWeight: 'bold' }}>
-                  {chat.lastMessage?.sender.name?.split(' ')[0]}:
-                </span>{' '}
-                {chat.lastMessage?.content?.length &&
-                chat.lastMessage?.content?.length > 18
-                  ? `${chat.lastMessage?.content?.slice(0, 18)}...`
-                  : chat.lastMessage?.content}
+                {chat.lastMessage && (
+                  <>
+                    <span style={{ fontWeight: 'bold' }}>
+                      {chat.lastMessage?.sender.name?.split(' ')[0]}:
+                    </span>
+                    {chat.lastMessage?.content?.length &&
+                    chat.lastMessage?.content?.length > 18
+                      ? `${chat.lastMessage?.content?.slice(0, 18)}...`
+                      : chat.lastMessage?.content}
+                  </>
+                )}
               </Box>
             ))}
           </Stack>

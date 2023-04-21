@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect } from 'react';
 import { useState } from 'react';
 import {
   useToast,
@@ -40,10 +40,14 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { storage } from '../../utils/storage';
 import ChatLoading from '../../utils/ChatLoading';
 import UserListItem from '../UserAvatar/UserListItems';
-import { User } from '../../types/interfaces';
+import { Chat, User } from '../../types/interfaces';
 import { getSender } from '../../config/chatLogics';
 
-function SideDrawer({ bg }: any) {
+function SideDrawer({
+  bg,
+  fetchNotificationsAgain,
+  setFetchNotificationsAgain,
+}: any) {
   const {
     user,
     setSelectedChat,
@@ -63,6 +67,22 @@ function SideDrawer({ bg }: any) {
 
   const toast = useToast();
   const { colorMode, toggleColorMode } = useColorMode();
+
+  const fetchNotifications = async () => {
+    try {
+      const token = storage.getToken();
+      const config: AxiosRequestConfig = {
+        url: `/api/v1/users/${user.id}/notifications?read=false&limit=10`,
+        headers: { Authorization: `Bearer ${token}` },
+        method: 'GET',
+      };
+      const { data } = await (await axios(config)).data.data;
+      setNotification(data);
+    } catch (error) {}
+  };
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotificationsAgain]);
 
   const logoutHandler = () => {
     storage.clearToken();
@@ -95,7 +115,6 @@ function SideDrawer({ bg }: any) {
       ).data.data;
       setSearchResult(data);
     } catch (err: any) {
-      console.log(err);
       toast({
         title: 'Failed to load the search result',
         status: 'error',
@@ -138,6 +157,19 @@ function SideDrawer({ bg }: any) {
     }
     setLoadingChat(false);
   };
+
+  const markAsRead = async (id: string) => {
+    try {
+      const token = storage.getToken();
+      const config: AxiosRequestConfig = {
+        url: `/api/v1/users/${user.id}/notifications/${id}`,
+        headers: { Authorization: `Bearer ${token}` },
+        method: 'PATCH',
+        data: { read: true },
+      };
+      const res = await axios(config);
+    } catch (error) {}
+  };
   return (
     <Fragment>
       <Box
@@ -146,7 +178,7 @@ function SideDrawer({ bg }: any) {
         alignItems="center"
         w="100%"
         background="white"
-        padding="5px 10px 5px 10px"
+        p={{ base: '2px 5px 2px 5px' }}
         borderWidth="5px"
         bg={bg}
       >
@@ -159,7 +191,7 @@ function SideDrawer({ bg }: any) {
           </Button>
         </Tooltip>
         <Text fontSize={'2xl'} fontFamily={'work sans'}>
-          Talk-A-Tive
+          Bio-Gram
         </Text>
         <div>
           <Menu>
@@ -178,22 +210,42 @@ function SideDrawer({ bg }: any) {
               {notification.map((notif: any) => (
                 <MenuItem
                   onClick={() => {
-                    setSelectedChat(notif.chat);
-                    setNotification(
-                      notification.filter((n: any) => n !== notif)
-                    );
+                    markAsRead(notif.id);
+                    setSelectedChat({ users: [], groupAdmin: {} });
+                    setTimeout(function () {
+                      setSelectedChat(
+                        notif.message ? notif.message.chat : notif.chat
+                      );
+                    }, 0);
+
+                    setFetchNotificationsAgain(!fetchNotificationsAgain);
                   }}
                   key={notif.id}
                 >
-                  {notif.chat.isGroup
-                    ? `New Message in ${notif.chat.name}`
-                    : `New Message from ${getSender(user, notif.chat.users)}`}
+                  {notif.message ? (
+                    <>
+                      {notif.message.chat.isGroup
+                        ? `New Message in ${notif.message.chat.name}`
+                        : `New Message from ${getSender(
+                            user,
+                            notif.message.chat.users
+                          )}`}
+                    </>
+                  ) : (
+                    `${notif.chat.groupAdmin.name.split(' ')[0]} Added You To ${
+                      notif.chat.name
+                    } Group`
+                  )}
                 </MenuItem>
               ))}
             </MenuList>
           </Menu>
           <Menu>
-            <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+            <MenuButton
+              px={{ base: '10px', md: '15px', lg: '15px' }}
+              as={Button}
+              rightIcon={<ChevronDownIcon />}
+            >
               {user.photo && (
                 <Avatar
                   size="sm"
@@ -208,10 +260,24 @@ function SideDrawer({ bg }: any) {
                 <MenuItem>My Profile</MenuItem>
               </ProfileModel>
               <MenuDivider />
-              <MenuItem onClick={logoutHandler}>Logout</MenuItem>
               <MenuItem onClick={toggleColorMode}>
-                {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+                {colorMode === 'light' ? (
+                  <>
+                    <MoonIcon />
+                    <Text lineHeight="0" px="2">
+                      Dark
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <SunIcon />
+                    <Text lineHeight="0" px="2">
+                      Light
+                    </Text>
+                  </>
+                )}
               </MenuItem>
+              <MenuItem onClick={logoutHandler}> Logout</MenuItem>
             </MenuList>
           </Menu>
         </div>

@@ -84,8 +84,12 @@ function UpdateGroupChatModel({
           isClosable: true,
           position: 'top',
         });
-        setSelectedChat(data);
+        setSelectedChat({ users: [], groupAdmin: {} });
+        setTimeout(function () {
+          setSelectedChat(data);
+        }, 10);
         setFetchAgain(!fetchAgain);
+        socket.emit('group add', data);
       }
     } catch (err: any) {
       toast({
@@ -159,7 +163,10 @@ function UpdateGroupChatModel({
           position: 'top',
         });
         setFetchAgain(!fetchAgain);
-        setSelectedChat(data);
+        setSelectedChat({ users: [], groupAdmin: {} });
+        setTimeout(function () {
+          setSelectedChat(data);
+        }, 10);
         socket.emit('group rename', {
           chat: data,
           userId: user.id,
@@ -201,11 +208,20 @@ function UpdateGroupChatModel({
           isClosable: true,
           position: 'top',
         });
-        userInfo.id === user.id
-          ? setSelectedChat({ users: [], groupAdmin: {} })
-          : setSelectedChat(data);
+        if (userInfo.id === user.id)
+          setSelectedChat({ users: [], groupAdmin: {} });
+        else {
+          setSelectedChat({ users: [], groupAdmin: {} });
+          setTimeout(function () {
+            setSelectedChat(data);
+          }, 10);
+        }
         setFetchAgain(!fetchAgain);
-        // fetchMessages();
+        socket.emit('group remove', {
+          chat: data,
+          userId: user.id,
+          removedUser: userInfo.id,
+        });
       }
     } catch (err: any) {
       toast({
@@ -228,6 +244,7 @@ function UpdateGroupChatModel({
         onClick={onOpen}
       />
       <Modal
+        size={{ base: 'xs', md: 'md', lg: '2xl' }}
         isOpen={isOpen}
         isCentered
         onClose={() => {

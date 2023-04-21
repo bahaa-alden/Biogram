@@ -1,5 +1,6 @@
 import { Model, Document } from 'mongoose';
 export interface IUser {
+  id: string;
   name: string;
   photo: string;
   email: string;

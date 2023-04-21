@@ -1,9 +1,19 @@
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { chatState } from '../../Context/ChatProvider';
 import SingleChat from './SingleChat';
 
-function ChatBox({ fetchAgain, setFetchAgain, color, bg }: any) {
+function ChatBox({
+  fetchAgain,
+  setFetchAgain,
+  color,
+  bg,
+  fetchNotificationsAgain,
+  setFetchNotificationsAgain,
+  socket,
+  socketConnected,
+}: any) {
   const { selectedChat } = chatState();
+
   return (
     <Box
       display={{
@@ -23,6 +33,10 @@ function ChatBox({ fetchAgain, setFetchAgain, color, bg }: any) {
         bg={bg}
         fetchAgain={fetchAgain}
         setFetchAgain={setFetchAgain}
+        fetchNotificationsAgain={fetchNotificationsAgain}
+        setFetchNotificationsAgain={setFetchNotificationsAgain}
+        socket={socket}
+        socketConnected={socketConnected}
       />
     </Box>
   );

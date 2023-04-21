@@ -19,7 +19,7 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import React, { Fragment, useEffect, useState } from 'react';
-import { User, props } from '../../types/interfaces';
+import { User } from '../../types/interfaces';
 import { useToast, Stack } from '@chakra-ui/react';
 import { chatState } from '../../Context/ChatProvider';
 import { storage } from '../../utils/storage';
@@ -28,7 +28,7 @@ import UserListItem from '../UserAvatar/UserListItems';
 import UserBadgeList from '../UserBadge/UserBadgeList';
 import ChatLoading from '../../utils/ChatLoading';
 
-function GroupChatModel({ children }: props) {
+function GroupChatModel({ children, socket }: any) {
   const isCreate = true;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [groupName, setGroupName] = useState('');
@@ -122,6 +122,7 @@ function GroupChatModel({ children }: props) {
           isClosable: true,
           position: 'top',
         });
+        socket.emit('group add', data);
       }
     } catch (err) {
       toast({
@@ -144,6 +145,7 @@ function GroupChatModel({ children }: props) {
     <Fragment>
       <span onClick={onOpen}>{children}</span>
       <Modal
+        size={{ base: 'xs', md: 'md', lg: '2xl' }}
         isOpen={isOpen}
         onClose={() => {
           setSelectedUsers([]);
