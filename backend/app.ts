@@ -31,6 +31,9 @@ const app: express.Application = express();
 app.use(cors());
 app.options('*', cors());
 app.use(express.static(path.join(__dirname, 'public')));
+if (settings.NODE_ENV === 'production') {
+  app.use(express.static(path.join(`${__dirname}/../frontend`, 'dist')));
+}
 app.use(helmet());
 if (settings.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -74,6 +77,17 @@ app.use((req: any, res: Response, next: NextFunction) => {
 
 //Routes
 app.use(routes);
+
+//For Views
+if (settings.NODE_ENV === 'production') {
+  app.get('*', (req, res, next) => {
+    res.sendFile('index.html');
+  });
+} else {
+  app.get('/', (req, res, next) => {
+    res.send('API work successfully');
+  });
+}
 
 //for other routes
 app.all('*', notFound);

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import tsconfigPaths from 'vite-tsconfig-paths';
 // import react from '@vitejs/plugin-react-swc';
-// 
+//
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -52,8 +52,8 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api': 'http://127.0.0.1:5000',
-      '/img': 'http://127.0.0.1:5000',
+      '/api': 'http://localhost:5000',
+      '/img': 'http://localhost:5000',
     },
   },
 });

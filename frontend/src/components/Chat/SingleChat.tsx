@@ -3,13 +3,14 @@ import { chatState } from '../../Context/ChatProvider';
 import { Fragment } from 'react';
 import {
   Box,
+  Button,
   FormControl,
   IconButton,
   Input,
   Spinner,
   Text,
 } from '@chakra-ui/react';
-import { ArrowBackIcon } from '@chakra-ui/icons';
+import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 import UpdateGroupChatModel from '../miscellaneous/UpdateGroupChatModel';
 import { getSender, getSenderFull } from '../../config/chatLogics';
 import ProfileModel from '../miscellaneous/ProfileModel';
@@ -22,7 +23,7 @@ import io, { Socket } from 'socket.io-client';
 import Lottie from 'lottie-react';
 import animationData from './../../assets/132124-hands-typing-on-keyboard.json';
 
-const ENDPOINT = 'http://127.0.0.1:5000/';
+const ENDPOINT = 'http://localhost:5000/';
 
 let socket: Socket, selectedChatCompare: any;
 function SingleChat({
@@ -166,8 +167,8 @@ function SingleChat({
     // };
   }, [selectedChat]);
 
-  const sendMessage = async (e: any) => {
-    if (e.key === 'Enter') {
+  const sendMessage = async (e: any, send: boolean) => {
+    if (e.key === 'Enter' || send) {
       if (!newMessage) {
         toast({
           title: 'Please write a message!',
@@ -230,7 +231,6 @@ function SingleChat({
       setFetchNotificationsAgain(!fetchNotificationsAgain);
     });
   });
-
   return (
     <Fragment>
       {selectedChat.users.length ? (
@@ -296,36 +296,58 @@ function SingleChat({
                 handleScroll={handleScroll}
               />
             )}
-            <FormControl onKeyDown={sendMessage}>
-              {isTyping && (
-                <div style={{ color: 'black' }}>
-                  <Lottie
-                    // height={70}
-                    style={{
-                      marginBottom: 0,
-                      marginLeft: 0,
-                      width: 40,
-                      height: 30,
-                    }}
-                    animationData={animationData}
-                    autoPlay={true}
-                    loop={true}
-                    rendererSettings={{ preserveAspectRatio: 'xMidYMid slice' }}
-                  />
-                </div>
-              )}
-              <Input
-                variant="filled"
-                bg="e0e0e0"
-                color="black"
-                placeholder="Enter a message"
-                onChange={(e) => {
-                  setNewMessage(e.target.value);
+            <Box
+              display={'flex'}
+              justifyContent={'space-between'}
+              alignItems={'center'}
+              gap="10px"
+              mt="1"
+            >
+              <FormControl
+                onKeyDown={(e) => {
+                  sendMessage(e, false);
                 }}
-                value={newMessage}
-                border="1px solid gray"
+              >
+                {isTyping && (
+                  <Box color="black">
+                    <Lottie
+                      style={{
+                        width: 40,
+                        height: 20,
+                      }}
+                      animationData={animationData}
+                      autoPlay={true}
+                      loop={true}
+                      rendererSettings={{
+                        preserveAspectRatio: 'xMidYMid slice',
+                      }}
+                    />
+                  </Box>
+                )}
+                <Input
+                  variant="filled"
+                  bg="e0e0e0"
+                  color="black"
+                  placeholder="Enter a message"
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                  }}
+                  value={newMessage}
+                  border="1px solid gray"
+                />
+              </FormControl>
+              <IconButton
+                aria-label="send message"
+                icon={<ArrowForwardIcon />}
+                bg="rgb(10 85 135)"
+                _hover={{ opacity: '0.8' }}
+                size="lg"
+                borderRadius={'full'}
+                onClick={(e) => {
+                  sendMessage(e, true);
+                }}
               />
-            </FormControl>
+            </Box>
           </Box>
         </>
       ) : (
