@@ -10,6 +10,8 @@ export type GlobalContextType = {
   setSelectedChat: (value: Chat) => void;
   notification: any;
   setNotification: (value: any) => void;
+  lo: boolean;
+  setLo: (value: boolean) => void;
 };
 
 export const INITIAL_VALUE: GlobalContextType = {
@@ -21,5 +23,7 @@ export const INITIAL_VALUE: GlobalContextType = {
   setSelectedChat: () => {},
   notification: {},
   setNotification: () => {},
+  lo: false,
+  setLo: () => false,
 };
 // interface init {}

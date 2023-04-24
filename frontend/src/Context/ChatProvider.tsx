@@ -15,7 +15,7 @@ const ChatProvider = ({ children }: props) => {
   });
   const [chats, setChats] = useState<Chat[]>([]);
   const [notification, setNotification] = useState<any>([]);
-
+  const [lo, setLo] = useState(true);
   const fetchUserData = () => {
     const token = storage.getToken();
     if (!token) return;
@@ -29,9 +29,14 @@ const ChatProvider = ({ children }: props) => {
       })
       .then((res) => {
         setUser(res.data.data.data);
+
         return res.data.data.data;
       })
       .catch((err) => console.log(err));
+      
+      setTimeout(function () {
+        setLo(false);
+      }, 1000);
     return res;
   };
 
@@ -46,6 +51,8 @@ const ChatProvider = ({ children }: props) => {
   return (
     <ChatContext.Provider
       value={{
+        lo,
+        setLo,
         user,
         setUser,
         selectedChat,

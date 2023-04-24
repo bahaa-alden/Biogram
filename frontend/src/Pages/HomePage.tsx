@@ -13,24 +13,13 @@ import {
 } from '@chakra-ui/react';
 import Login from '../components/Authentication/Login';
 import SignUp from '../components/Authentication/SignUp';
-import { MoonIcon, SunIcon } from '@chakra-ui/icons';
 
 function HomePage() {
-  const { colorMode, toggleColorMode } = useColorMode();
   const bg = useColorModeValue('white', 'black');
   const bgS = useColorModeValue('rgb(26, 193, 222)', 'white');
 
   return (
     <Container>
-      <Button
-        position="absolute"
-        left="2px"
-        top="0px"
-        p={'2px'}
-        onClick={toggleColorMode}
-      >
-        {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-      </Button>
       <Box
         display="flex"
         justifyContent="center"

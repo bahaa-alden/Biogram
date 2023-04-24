@@ -6,13 +6,16 @@ import App from './App/App';
 import ChatProvider from './Context/ChatProvider';
 import './index.css';
 import theme from './config/theme';
+import LoadingUser from './utils/LoadingUser';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <Router>
     <ChatProvider>
       <ChakraProvider>
-        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-        <App />
+        <LoadingUser>
+          <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+          <App />
+        </LoadingUser>
       </ChakraProvider>
     </ChatProvider>
   </Router>
