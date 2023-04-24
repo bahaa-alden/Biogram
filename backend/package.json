@@ -42,6 +42,8 @@
     "sharp": "^0.31.3",
     "slugify": "^1.6.5",
     "stripe": "^11.14.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4",
     "util": "^0.12.5",
     "validator": "^13.7.0"
   },
@@ -74,8 +76,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "multer": "^1.4.5-lts.1",
     "prettier": "^2.7.1",
-    "ts-node": "^10.9.1",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.0.2"
+    "ts-node-dev": "^2.0.0"
   }
 }
