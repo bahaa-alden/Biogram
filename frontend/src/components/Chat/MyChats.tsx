@@ -16,7 +16,7 @@ import { getSender } from '../../config/chatLogics';
 import GroupChatModel from '../miscellaneous/GroupChatModel';
 import { Chat } from '../../types/interfaces';
 import io, { Socket } from 'socket.io-client';
-const ENDPOINT = 'http://localhost:5000/';
+const ENDPOINT = ' biogram.onrender.com:10000';
 let socket: Socket;
 
 function MyChat({ fetchAgain, bg }: any) {

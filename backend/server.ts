@@ -1,5 +1,4 @@
-﻿import colors from 'colors';
-import './alias';
+﻿import './alias';
 import '@utils/unCaughtException';
 import app from './app';
 import { settings } from '@config/settings';
@@ -11,7 +10,7 @@ connDB();
 const port = settings.PORT;
 
 const server = app.listen(port, () =>
-  console.log(colors.yellow(`Example app listening on port ${port}!`).bold)
+  console.log(`Example app listening on port ${port}!`)
 );
 
 const io = new Server(server, {

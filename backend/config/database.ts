@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { settings } from './settings';
-import colors from 'colors';
 
 const pass: any = settings.DB.PASSWORD;
 const DB: any = settings.DB.DATABASE?.replace(
@@ -11,8 +10,8 @@ const DB: any = settings.DB.DATABASE?.replace(
 const ConnDB = () => {
   mongoose
     .connect(DB)
-    .then(() => console.log(colors.cyan('DB connection succeeded').bold))
-    .catch(() => console.log(colors.red('Mongo connection error')));
+    .then(() => console.log('DB connection succeeded'))
+    .catch(() => console.log('Mongo connection error'));
 };
 
 export default ConnDB;
