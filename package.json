@@ -4,8 +4,10 @@
     "start": "ts-node backend/server.ts"
   },
   "dependencies": {
+    "@types/node": "^18.16.0",
     "socket.io": "^4.6.1",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
   },
   "devDependencies": {
     "@types/socket.io": "^3.0.2"
