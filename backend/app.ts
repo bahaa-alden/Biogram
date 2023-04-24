@@ -75,15 +75,15 @@ app.use((req: any, res: Response, next: NextFunction) => {
   next();
 });
 
-app.get('/health', async (req, res, next) => {
-  res.status(200).send({ status: 'success' });
-});
-
 //Routes
 app.use(routes);
 
 //For Views
 if (settings.NODE_ENV === 'production') {
+  app.get('/health', async (req, res, next) => {
+    res.status(200).send({ status: 'success' });
+  });
+
   app.get('*', (req, res, next) => {
     res.sendFile('index.html');
   });
