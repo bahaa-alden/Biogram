@@ -16,6 +16,7 @@ export const setSenderAndChat = (
 ) => {
   if (!req.body.chat) req.body.chat = req.params.chatId;
   req.body.sender = req.user?.id;
+
   next();
 };
 export const getAllMessages = getAll(Message);

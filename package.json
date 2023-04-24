@@ -1,5 +1,8 @@
 {
   "license": "MIT",
+  "scripts": {
+    "start": "ts-node backend/server.ts"
+  },
   "dependencies": {
     "socket.io": "^4.6.1"
   },

@@ -1,4 +1,4 @@
-import { Schema, model, DocumentQuery } from 'mongoose';
+import { Schema, model, QueryOptions } from 'mongoose';
 import validator from 'validator';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -65,14 +65,16 @@ userSchema.pre('save', function (next) {
   next();
 });
 
-userSchema.pre<DocumentQuery<any, UserDoc>>(/^find/, function (next) {
+userSchema.pre<QueryOptions>(/^find/, function (next) {
   this.find({ active: { $ne: false } });
   next();
 });
 
 //we did this operation in the model to apply the concept of fat model && fit controller
 //for matching the password with the encrypted one
-userSchema.methods.correctPassword = async function (candidatePassword) {
+userSchema.methods.correctPassword = async function (
+  candidatePassword: string
+) {
   //candidate password means the password with the body
   return bcryptjs.compare(candidatePassword, this.password);
 };

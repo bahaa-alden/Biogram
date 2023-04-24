@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 
-config();
+config({ path: `${__dirname}/../../.env` });
 
 export const settings = {
   NODE_ENV: process.env.NODE_ENV,
@@ -10,7 +10,7 @@ export const settings = {
   JWT_COOKIE_EXPIRES_IN: process.env.JWT_COOKIE_EXPIRES_IN,
   DB: {
     DATABASE: process.env.DATABASE,
-    PASSWORD: process.env.PASSWORD,
+    PASSWORD: process.env.PASSWORD || ' ',
     DATABASE_LOCAL: process.env.DATABASE_LOCAL,
   },
   MAILER: {

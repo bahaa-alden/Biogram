@@ -1,7 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { ChatModel, ChatDoc } from '../types/chat.type';
 import AppError from '@utils/appError';
-import { IUser } from '../types/user.type';
 import Notification from '@models/notification.model';
 
 const chatSchema = new Schema<ChatDoc, ChatModel, any>(
@@ -39,22 +38,16 @@ chatSchema.pre('save', function (next) {
   next();
 });
 
-chatSchema.pre(/^find/, function (next) {
-  this.populate({ path: 'users', select: 'name photo email' })
-    .populate({ path: 'groupAdmin', select: 'name photo email' })
-    .populate({
-      path: 'lastMessage',
-    });
-  next();
+chatSchema.post('save', async function () {
+  await this.populate({ path: 'users', select: 'name photo email' });
+  await this.populate({ path: 'groupAdmin', select: 'name photo email' });
 });
 
-chatSchema.post('save', async function () {
-  await this.populate({ path: 'users', select: 'name photo email' })
-    .populate({ path: 'groupAdmin', select: 'name photo email' })
-    .populate({
-      path: 'lastMessage',
-    })
-    .execPopulate();
+chatSchema.pre(/^find/, function (next) {
+  this.populate('users', 'name photo email')
+    .populate('groupAdmin', 'name photo email')
+    .populate('lastMessage');
+  next();
 });
 
 chatSchema.methods.createNotification = async function (users: any) {

@@ -1,11 +1,14 @@
-import { Document, Model, Schema } from 'mongoose';
+import { Document, Model, Types } from 'mongoose';
+import { IUser } from './user.type';
+import { IMessage } from './message.type';
 
 export interface IChat {
+  id:string;
   name: string;
-  users: Schema.Types.ObjectId[];
-  lastMessage?: Schema.Types.ObjectId | string;
+  users: IUser[] | Types.ObjectId[];
+  lastMessage?: Types.ObjectId | IMessage;
   isGroup: boolean;
-  groupAdmin?: Schema.Types.ObjectId | any;
+  groupAdmin?: Types.ObjectId | IUser;
   createNotification(userId: string): void;
 }
 

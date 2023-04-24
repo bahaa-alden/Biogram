@@ -1,7 +1,7 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, Types, model } from 'mongoose';
 import { MessageModel, MessageDoc } from '../types/message.type';
 import Chat from './chat.model';
-import { IUser, UserDoc } from '../types/user.type';
+import { IUser } from '../types/user.type';
 import Notification from './notification.model';
 import AppError from '@utils/appError';
 
@@ -31,20 +31,21 @@ messageSchema.pre('save', async function (next) {
     users: { $elemMatch: { $eq: this.sender } },
   });
   if (!chat) return next(new AppError(400, 'you do not belong to this chat'));
+  next();
 });
 
-messageSchema.post('save', async function (doc) {
-  await this.populate({
-    path: 'sender',
-    select: 'name photo email ',
-  })
-    .populate('chat')
-    .execPopulate();
+messageSchema.post('save', async function (doc, next) {
   await Chat.findByIdAndUpdate(this.chat, { lastMessage: doc });
+  await doc.populate({
+    path: 'sender',
+    select: 'name photo email',
+  });
+  await doc.populate('chat');
+  next();
 });
 
 messageSchema.post('save', async function (doc) {
-  const users: Array<IUser> = doc.chat.users;
+  const users: Array<IUser | Types.ObjectId> = doc.chat.users;
   users.forEach(async (user) => {
     if (user.id === doc.sender.id) return;
     await Notification.create({
@@ -54,11 +55,10 @@ messageSchema.post('save', async function (doc) {
     });
   });
 });
+
 messageSchema.pre(/^find/, function (next) {
-  this.populate({ path: 'sender', select: 'name photo email ' }).populate({
-    path: 'chat',
-    select: '-lastMessage',
-  });
+  this.populate({ path: 'sender', select: 'name photo email' });
+  this.populate({ path: 'chat', select: { lastMessage: 0 } });
   next();
 });
 const Message = model<MessageDoc>('Message', messageSchema);

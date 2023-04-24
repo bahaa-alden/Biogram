@@ -3,7 +3,6 @@ import { Request, Response, NextFunction } from 'express';
 import APIFeatures from '../utils/apiFeatures';
 import AppError from '../utils/appError';
 import catchAsync from '../utils/catchAsync';
-import Chat from '@models/chat.model';
 
 export const deleteOne = (Model: Model<any>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {

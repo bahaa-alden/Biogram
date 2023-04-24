@@ -133,7 +133,7 @@ export const removeFromGroup = catchAsync(
       return next(new AppError(404, `No chat found with that ID`));
     }
 
-    if (userId === chat?.groupAdmin.id) {
+    if (userId === chat.groupAdmin?.id) {
       chat.groupAdmin = chat.users[0];
       await chat.save({ validateBeforeSave: false });
     }
