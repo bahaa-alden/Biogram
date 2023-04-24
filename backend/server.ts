@@ -13,10 +13,7 @@ const server = app.listen(port, () =>
   console.log(`Example app listening on port ${port}!`)
 );
 
-const io = new Server(server, {
-  pingTimeout: 60000,
-  cors: { origin: 'https://biogram.onrender.com' },
-});
+const io = new Server(server);
 
 io.on('connection', (socket) => {
   socket.on('setup', (userData) => {
