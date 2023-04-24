@@ -57,7 +57,7 @@ function ProfileModel({ user, children }: any) {
               src={`/img/users/${user?.photo}`}
               alt={user?.name}
             />
-            <Text
+            <Text 
               fontSize={{ base: '22px', md: '30px' }}
               fontFamily="work sans"
             >
