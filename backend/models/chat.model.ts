@@ -46,7 +46,7 @@ chatSchema.post('save', async function () {
 chatSchema.pre(/^find/, function (next) {
   this.populate('users', 'name photo email')
     .populate('groupAdmin', 'name photo email')
-    .populate('lastMessage');
+    .populate({ path: 'lastMessage', select: { chat: 0 } });
   next();
 });
 

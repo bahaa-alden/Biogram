@@ -40,7 +40,7 @@ messageSchema.post('save', async function (doc, next) {
     path: 'sender',
     select: 'name photo email',
   });
-  await doc.populate('chat');
+  await doc.populate({ path: 'chat', select: { lastMessage: 0 } });
   next();
 });
 

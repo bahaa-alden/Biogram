@@ -2,8 +2,8 @@ import { Document, Model, Schema } from 'mongoose';
 
 export interface INotification {
   user: Schema.Types.ObjectId;
-  message: Schema.Types.ObjectId | string;
-  chat: Schema.Types.ObjectId | string;
+  message: Schema.Types.ObjectId;
+  chat: Schema.Types.ObjectId;
   read: boolean;
 }
 
