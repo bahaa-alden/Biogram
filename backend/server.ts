@@ -1,4 +1,4 @@
-﻿import './alias';
+import './alias';
 import '@utils/unCaughtException';
 import app from './app';
 import { settings } from '@config/settings';
@@ -13,7 +13,10 @@ const server = app.listen(port, () =>
   console.log(`Example app listening on port ${port}!`)
 );
 
-const io = new Server(server);
+const io = new Server(server, {
+  pingTimeout: 60000,
+  cors: { origin: 'https://biogram.onrender.com' },
+});
 
 io.on('connection', (socket) => {
   socket.on('setup', (userData) => {
