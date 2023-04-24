@@ -3,7 +3,10 @@ import { settings } from './settings';
 import colors from 'colors';
 
 const pass: any = settings.DB.PASSWORD;
-const DB: any = settings.DB.DATABASE_LOCAL
+const DB: any = settings.DB.DATABASE?.replace(
+  '<PASSWORD>',
+  settings.DB.PASSWORD
+);
 
 const ConnDB = () => {
   mongoose
