@@ -58,7 +58,7 @@ function ProfileModel({ user, children }: any) {
               alt={user?.name}
             />
             <Text
-              fontSize={{ base: '28px', md: '30px' }}
+              fontSize={{ base: '22px', md: '30px' }}
               fontFamily="work sans"
             >
               {user?.email}
