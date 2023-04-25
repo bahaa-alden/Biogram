@@ -10,7 +10,7 @@ export default defineConfig({
     tsconfigPaths(),
     VitePWA({
       includeAssets: [
-        'favicon.ico', 
+        'favicon.ico',
         'apple-touch-icon.png',
         'masked-icon.svg',
         'fonts/Montserrat-Arabic-Regular.ttf',
