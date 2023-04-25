@@ -23,10 +23,7 @@ const sendUser = (user: any, statusCode: number, res: Response) => {
 export const signup = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const newUser = await User.create(req.body);
-    await new Email(
-      newUser,
-      `${req.protocol}://${req.get('host')}/me`
-    ).sendWelcome();
+
     sendUser(newUser, 201, res);
   }
 );
@@ -80,7 +77,6 @@ export const forgotPassword = catchAsync(
     )}/resetPassword/${resetToken}`;
     // 4) Send the email
     try {
-      await new Email(user, resetUrl).sendPasswordReset();
       res.status(200).json({
         status: 'success',
         message: 'Token sent to email',
@@ -136,7 +132,6 @@ export const resetPassword = catchAsync(
     user.password = req.body.password;
     await user.save();
     const home = `${req.protocol}://${req.get('host')}/`;
-    await new Email(user, home).sendResetMessage();
 
     sendUser(user, 200, res);
   }
@@ -158,7 +153,6 @@ export const updateMyPassword = catchAsync(
     user.password = password;
     await user.save();
     const me = `${req.protocol}://${req.get('host')}/me`;
-    await new Email(user, me).sendResetMessage();
     //Logging in the user
     sendUser(user, 200, res);
   }
