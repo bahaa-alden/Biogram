@@ -49,8 +49,8 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api': 'https://biogram.onrender.com',
-      '/img': 'https://biogram.onrender.com',
+      '/api': 'http://localhost:5000/',
+      '/img': 'http://localhost:5000/',
     },
   },
 });
