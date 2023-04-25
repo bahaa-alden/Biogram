@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import tsconfigPaths from 'vite-tsconfig-paths';
-// import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react-swc';
 //
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,7 +10,7 @@ export default defineConfig({
     tsconfigPaths(),
     VitePWA({
       includeAssets: [
-        'favicon.ico',
+        'favicon.ico', 
         'apple-touch-icon.png',
         'masked-icon.svg',
         'fonts/Montserrat-Arabic-Regular.ttf',
@@ -52,8 +51,8 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api': 'http://localhost:5000',
-      '/img': 'http://localhost:5000',
+      '/api': 'https://biogram.onrender.com',
+      '/img': 'https://biogram.onrender.com',
     },
   },
 });

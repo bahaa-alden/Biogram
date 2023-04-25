@@ -317,7 +317,6 @@ function SideDrawer({
             )}
             {loadingChat && <Spinner ml="auto" display="flex" />}
           </DrawerBody>
-
           <DrawerFooter>
             <Button colorScheme="blue" mr={3} onClick={onClose}>
               Cancel
