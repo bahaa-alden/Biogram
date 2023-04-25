@@ -50,6 +50,7 @@ function SideDrawer({
 }: any) {
   const {
     user,
+    selectedChat,
     setSelectedChat,
     setChats,
     chats,
@@ -211,13 +212,22 @@ function SideDrawer({
                 <MenuItem
                   onClick={() => {
                     markAsRead(notif.id);
-                    setSelectedChat({ users: [], groupAdmin: {} });
-                    setTimeout(function () {
-                      setSelectedChat(
-                        notif.message ? notif.message.chat : notif.chat
-                      );
-                    }, 0);
-
+                    if (
+                      notif.message &&
+                      notif.message.chat.id !== selectedChat.id
+                    ) {
+                      setSelectedChat({ users: [], groupAdmin: {} });
+                      setTimeout(function () {
+                        setSelectedChat(notif.message.chat);
+                      }, 100);
+                    } else {
+                      if (notif.chat.id !== selectedChat.id) {
+                        setSelectedChat({ users: [], groupAdmin: {} });
+                        setTimeout(function () {
+                          setSelectedChat(notif.chat);
+                        }, 100);
+                      }
+                    }
                     setFetchNotificationsAgain(!fetchNotificationsAgain);
                   }}
                   key={notif.id}

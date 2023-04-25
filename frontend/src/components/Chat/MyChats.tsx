@@ -109,10 +109,14 @@ function MyChat({ fetchAgain, bg }: any) {
             {chats.map((chat: Chat) => (
               <Box
                 onClick={() => {
-                  setSelectedChat({ users: [], groupAdmin: {} });
-                  setTimeout(function () {
-                    setSelectedChat(chat);
-                  }, 100);
+                  {
+                    if (chat.id !== selectedChat.id) {
+                      setSelectedChat({ users: [], groupAdmin: {} });
+                      setTimeout(function () {
+                        setSelectedChat(chat);
+                      }, 100);
+                    }
+                  }
                 }}
                 cursor="pointer"
                 bg={selectedChat === chat ? `${bgC}` : '#e8e8e8'}
