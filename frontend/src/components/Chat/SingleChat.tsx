@@ -193,6 +193,7 @@ function SingleChat({
         scrollToBottom();
         socket.emit('new message', data);
         setMessages([...messages, data]);
+        setFetchAgain(!fetchAgain);
       } catch (err: any) {
         toast({
           title: 'Error  Occurred!',

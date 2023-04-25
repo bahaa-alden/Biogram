@@ -4,18 +4,23 @@ import { chatState } from '../Context/ChatProvider';
 function LoadingUser({ children }: any) {
   const { lo } = chatState();
   return (
-    <Box>
+    <Box width={'100vw'} height={'100vh'} position={'relative'}>
       {lo && (
-        <Box bg="white" width={'100vw'} height={'100vh'} position={'relative'}>
+        <Box
+          position={'absolute'}
+          width={'100%'}
+          height={'100%'}
+          bg="white"
+          zIndex={'9999'}
+          display={'flex'}
+          justifyContent={'center'}
+          alignItems={'center'}
+        >
           <Spinner
             size={'lg'}
-            position={'absolute'}
-            top="37%"
-            left="45%"
-            translateX="-50%"
-            translateY="-50%"
-            width={'200px'}
-            height={'200px'}
+            width={{ base: '100px', md: '200px' }}
+            height={{ base: '100px', md: '200px' }}
+            borderWidth={'8px'}
           />
         </Box>
       )}
