@@ -11,7 +11,6 @@
 .cache/
 .history/
 node_modules/
-.vscode/
 
 # Built Visual Studio Code Extensions
 *.vsix
