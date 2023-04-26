@@ -53,7 +53,7 @@ function MessageItem({ message, messages, index }: any) {
       {((isSameSender(messages, message, index, user.id) &&
         selectedChat.isGroup) ||
         (isLastMessage(messages, index, user.id) && selectedChat.isGroup)) && (
-        <ProfileModel user={message.sender}>
+        <ProfileModel userInfo={message.sender}>
           <Tooltip
             label={message.sender.name}
             placement="bottom-start"

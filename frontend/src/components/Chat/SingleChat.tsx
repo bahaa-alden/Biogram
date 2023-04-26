@@ -257,7 +257,7 @@ function SingleChat({
             {!selectedChat.isGroup ? (
               <>
                 {getSender(user, selectedChat.users)}
-                <ProfileModel user={getSenderFull(user, selectedChat.users)} />
+                <ProfileModel userInfo={getSenderFull(user, selectedChat.users)} />
               </>
             ) : (
               <>
