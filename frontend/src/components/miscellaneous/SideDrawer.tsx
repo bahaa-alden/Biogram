@@ -24,6 +24,7 @@ import {
   useColorModeValue,
   useColorMode,
   Badge,
+  FormControl,
 } from '@chakra-ui/react';
 
 import {
@@ -97,16 +98,8 @@ function SideDrawer({
   };
 
   const handleSearch = async () => {
-    if (!search) {
-      toast({
-        title: 'Please enter something in search',
-        status: 'warning',
-        duration: 5000,
-        isClosable: true,
-        position: 'top-left',
-      });
-      return;
-    }
+    if (!search) return;
+
     try {
       setLoading(true);
       const token = storage.getToken();
@@ -171,6 +164,13 @@ function SideDrawer({
       const res = await axios(config);
     } catch (error) {}
   };
+
+  useEffect(() => {
+    const h = setTimeout(function () {
+      handleSearch();
+    }, 100);
+    return () => clearTimeout(h);
+  }, [search]);
   return (
     <Fragment>
       <Box
@@ -266,7 +266,7 @@ function SideDrawer({
               )}
             </MenuButton>
             <MenuList>
-              <ProfileModel user={user}>
+              <ProfileModel userInfo={user}>
                 <MenuItem>My Profile</MenuItem>
               </ProfileModel>
               <MenuDivider />
@@ -307,15 +307,14 @@ function SideDrawer({
           <DrawerHeader borderBottomWidth="1px">Search Users</DrawerHeader>
           <DrawerBody>
             <Box display="flex" pb="2">
-              <Input
-                placeholder="Search by name or email"
-                mr="2"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <Button onClick={handleSearch} isLoading={loading}>
-                Go
-              </Button>
+              <FormControl>
+                <Input
+                  placeholder="Search by name or email"
+                  mr="2"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </FormControl>
             </Box>
             {loading ? (
               <ChatLoading num={10} />
