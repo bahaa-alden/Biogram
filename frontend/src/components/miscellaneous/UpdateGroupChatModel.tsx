@@ -17,7 +17,7 @@ import {
   Button,
   Spinner,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { User } from '../../types/interfaces';
 import { Fragment } from 'react';
 import UserBadgeList from '../UserBadge/UserBadgeList';
@@ -106,9 +106,8 @@ function UpdateGroupChatModel({
     setLoading(false);
   };
 
-  const handleSearch = async (query: string) => {
-    setSearch(query);
-    if (!query) return;
+  const handleSearch = async () => {
+    if (!search) return;
     try {
       setLoading(true);
       const token = storage.getToken();
@@ -131,6 +130,14 @@ function UpdateGroupChatModel({
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    const h = setTimeout(function () {
+      handleSearch();
+    }, 100);
+    return () => clearTimeout(h);
+  }, [search]);
+
   const handleRename = async () => {
     if (!groupName) {
       toast({
@@ -302,7 +309,7 @@ function UpdateGroupChatModel({
                     value={search}
                     placeholder="Add Users To Group"
                     mb={1}
-                    onChange={(e) => handleSearch(e.target.value)}
+                    onChange={(e) => setSearch(e.target.value)}
                   />
                 </FormControl>
                 {loading ? (
