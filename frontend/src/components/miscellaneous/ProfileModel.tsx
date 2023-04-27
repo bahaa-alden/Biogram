@@ -94,7 +94,7 @@ function ProfileModel({ userInfo, children }: any) {
               <Image
                 width={'100%'}
                 height={'100%'}
-                src={`/img/users/${userInfo?.photo}`}
+                src={userInfo?.photo}
                 alt={userInfo?.name}
               />
               {userInfo.id === user.id && (

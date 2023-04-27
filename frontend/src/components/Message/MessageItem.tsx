@@ -63,7 +63,7 @@ function MessageItem({ message, messages, index }: any) {
               mr="1"
               cursor="pointer"
               name={message.sender.name}
-              src={`/img/users/${message.sender.photo}`}
+              src={message.sender.photo}
               size="sm"
               mt="0"
               position="relative"

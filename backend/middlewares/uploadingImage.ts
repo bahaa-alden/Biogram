@@ -3,6 +3,9 @@ import AppError from '@utils/appError';
 import catchAsync from '@utils/catchAsync';
 import { NextFunction, Response, Request } from 'express';
 import sharp from 'sharp';
+import { Client } from '@rmp135/imgur';
+import { settings } from '@config/settings';
+
 const multerStorage = multer.memoryStorage();
 
 const multerFilter: any = (
@@ -22,14 +25,19 @@ export const resizeUserImage = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return next();
     if (!req.file) return next();
-    req.file.filename = `user-${req.user.id}-${Date.now()}.jpg`;
 
-    await sharp(req.file.buffer)
+    const pic = await sharp(req.file.buffer)
       .resize(128, 128)
       .toFormat('jpg')
       .jpeg({ quality: 90 })
-      .toFile(`${__dirname}/../public/img/users/${req.file.filename}`);
-
+      .toBuffer();
+    // or your client ID
+    const client = new Client({
+      client_id: settings.IMGUR_CLIENT_ID,
+      client_secret: settings.IMGUR_CLIENT_SECRET,
+    });
+    const response = await client.Image.upload(pic.toString('base64'));
+    req.file.filename = response.data.link;
     next();
   }
 );

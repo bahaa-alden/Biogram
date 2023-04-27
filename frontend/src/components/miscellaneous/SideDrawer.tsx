@@ -261,7 +261,7 @@ function SideDrawer({
                   size="sm"
                   cursor="pointer"
                   name={user.name}
-                  src={`/img/users/${user.photo}`}
+                  src={user.photo}
                 />
               )}
             </MenuButton>

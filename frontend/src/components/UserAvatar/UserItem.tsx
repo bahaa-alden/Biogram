@@ -21,7 +21,7 @@ function UserItem({ user, handleFunction }: any) {
         size="sm"
         cursor="pointer"
         name={user.name}
-        src={`/img/users/${user.photo}`}
+        src={user.photo}
       />
       <Box>
         <Text>{user.name}</Text>
