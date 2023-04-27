@@ -27,9 +27,9 @@ const notificationSchema = new Schema<NotificationDoc, NotificationModel, any>(
 );
 
 notificationSchema.pre(/^find/, function (next) {
-  this.populate({ path: 'user', select: 'name photo email' })
-    .populate({ path: 'message' })
-    .populate({ path: 'chat' });
+  this.populate({ path: 'user', select: 'name photo email' });
+  this.populate({ path: 'message' });
+  this.populate({ path: 'chat' });
 
   next();
 });
