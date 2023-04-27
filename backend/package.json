@@ -12,6 +12,7 @@
     "start:prod": "NODE_ENV=production nodemon server.ts"
   },
   "dependencies": {
+    "@rmp135/imgur": "^0.6.0",
     "@types/passport": "^1.0.12",
     "@types/passport-local": "^1.0.35",
     "bcryptjs": "^2.4.3",
@@ -78,5 +79,4 @@
     "prettier": "^2.7.1",
     "ts-node-dev": "^2.0.0"
   }
-
 }

@@ -8,6 +8,8 @@ export const settings = {
   JWT_SECRET: process.env.JWT_SECRET_KEY || 'cnasklcnsklcaskl',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
   JWT_COOKIE_EXPIRES_IN: process.env.JWT_COOKIE_EXPIRES_IN,
+  IMGUR_CLIENT_ID: process.env.IMGUR_CLIENT_ID,
+  IMGUR_CLIENT_SECRET: process.env.IMGUR_CLIENT_SECRET,
   DB: {
     DATABASE: process.env.DATABASE,
     PASSWORD: process.env.PASSWORD || ' ',
