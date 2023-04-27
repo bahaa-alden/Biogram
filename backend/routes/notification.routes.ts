@@ -3,6 +3,7 @@ import {
   deleteNotification,
   getAllNotification,
   getNotification,
+  updateCAndMNotifications,
   updateNotification,
 } from '@controllers/notification.controller';
 import { Router } from 'express';
@@ -15,6 +16,7 @@ router.use(
 );
 
 router.route('/').get(getAllNotification).post(createNotification);
+router.patch('/read', updateCAndMNotifications);
 router
   .route('/:id')
   .get(getNotification)
