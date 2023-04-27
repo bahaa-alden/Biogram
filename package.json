@@ -4,6 +4,7 @@
     "start": "ts-node backend/server.ts"
   },
   "dependencies": {
+    "@rmp135/imgur": "^0.6.0",
     "socket.io": "^4.6.1",
     "@types/passport": "^1.0.12",
     "@types/passport-local": "^1.0.35",
@@ -75,5 +76,3 @@
     "node": ">=8.3.0"
   }
 }
-
-
