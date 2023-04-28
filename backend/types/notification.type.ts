@@ -1,12 +1,12 @@
-import { Document, Model, Schema } from 'mongoose';
+import { Document, Model, PopulatedDoc, Types } from 'mongoose';
 import { IUser } from './user.type';
 import { IMessage } from './message.type';
 import { IChat } from './chat.type';
 
 export interface INotification {
-  user: Schema.Types.ObjectId | IUser;
-  message: Schema.Types.ObjectId | IMessage;
-  chat: Schema.Types.ObjectId | IChat;
+  user: Types.ObjectId | PopulatedDoc<IUser>;
+  message: Types.ObjectId | PopulatedDoc<IMessage>;
+  chat: Types.ObjectId | PopulatedDoc<IChat>;
   read: boolean;
 }
 

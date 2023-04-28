@@ -1,10 +1,10 @@
-import { Document, Types, Model } from 'mongoose';
+import { Document, Model, PopulatedDoc, Types } from 'mongoose';
 import { IUser } from './user.type';
-import { ChatDoc, IChat } from './chat.type';
+import { IChat } from './chat.type';
 
 export interface IMessage {
   content: string;
-  sender: IUser | Types.ObjectId;
+  sender: PopulatedDoc<IUser> | Types.ObjectId;
   chat: IChat;
 }
 
