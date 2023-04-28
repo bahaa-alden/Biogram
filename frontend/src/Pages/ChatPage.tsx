@@ -40,6 +40,7 @@ function ChatPage() {
             setFetchAgain={setFetchAgain}
             fetchNotificationsAgain={fetchNotificationsAgain}
             setFetchNotificationsAgain={setFetchNotificationsAgain}
+            color={color}
           />
         )}
       </Box>

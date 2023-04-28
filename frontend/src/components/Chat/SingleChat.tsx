@@ -48,7 +48,7 @@ function SingleChat({
   const [isEndOfMessages, setIsEndOfMessages] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [socketConnected, setSocketConnected] = useState(false);
-  const bgChat = useColorModeValue('rgb(26, 122, 143)', 'rgb(8, 34, 49)');
+  const bgChat = useColorModeValue('rgb(0, 170, 199)', 'rgb(8, 34, 49)');
 
   // Join the socket to the chat room
   useEffect(() => {
@@ -279,7 +279,7 @@ function SingleChat({
             display="flex"
             justifyContent="flex-end"
             flexDir="column"
-            p="3"
+            p="10px 10px 2px"
             background={'url(pattern-12.svg)  center center  '}
             backgroundSize={'contain'}
             // backgroundColor={'rgb(26, 193, 222)'}
@@ -305,56 +305,50 @@ function SingleChat({
                 handleScroll={handleScroll}
               />
             )}
-            <Box
+            <FormControl
               display={'flex'}
+              gap={'10px'}
               justifyContent={'space-between'}
               alignItems={'center'}
-              gap="10px"
-              mt="1"
+              onKeyDown={(e) => {
+                sendMessage(e, false);
+              }}
+              onSubmit={(e) => sendMessage(e, true)}
             >
-              <FormControl
-                onKeyDown={(e) => {
-                  sendMessage(e, false);
+              {isTyping && (
+                <Box color="black">
+                  <Lottie
+                    style={{
+                      width: 40,
+                      height: 20,
+                    }}
+                    animationData={animationData}
+                    autoPlay={true}
+                    loop={true}
+                    rendererSettings={{
+                      preserveAspectRatio: 'xMidYMid slice',
+                    }}
+                  />
+                </Box>
+              )}
+              <Input
+                bg="e0e0e0"
+                color={color}
+                placeholder="Enter a message"
+                onChange={(e) => {
+                  setNewMessage(e.target.value);
                 }}
-              >
-                {isTyping && (
-                  <Box color="black">
-                    <Lottie
-                      style={{
-                        width: 40,
-                        height: 20,
-                      }}
-                      animationData={animationData}
-                      autoPlay={true}
-                      loop={true}
-                      rendererSettings={{
-                        preserveAspectRatio: 'xMidYMid slice',
-                      }}
-                    />
-                  </Box>
-                )}
-                <Input
-                  bg="e0e0e0"
-                  color="black"
-                  placeholder="Enter a message"
-                  onChange={(e) => {
-                    setNewMessage(e.target.value);
-                  }}
-                  value={newMessage}
-                  border="1px solid gray"
-                />
-              </FormControl>
+                value={newMessage}
+                border="1px solid gray"
+              />
               <IconButton
                 aria-label="send message"
                 icon={<ArrowForwardIcon />}
                 bg="rgb(10 85 135)"
                 size="lg"
                 borderRadius={'full'}
-                onClick={(e) => {
-                  sendMessage(e, true);
-                }}
               />
-            </Box>
+            </FormControl>
           </Box>
         </>
       ) : (
