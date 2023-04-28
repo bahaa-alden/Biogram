@@ -10,7 +10,9 @@ function ChatPage() {
   const { user } = chatState();
   const [fetchAgain, setFetchAgain] = useState(false);
   const [fetchNotificationsAgain, setFetchNotificationsAgain] = useState(false);
-  const bg = useColorModeValue('white', 'black');
+  const bg = useColorModeValue('white', 'rgb(1, 12, 20)');
+  // const bg = useColorModeValue('rgb(26, 193, 222)', 'rgb(8, 34, 49)');
+
   const color = useColorModeValue('black', 'white');
 
   return (

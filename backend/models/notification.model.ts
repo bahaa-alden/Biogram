@@ -1,5 +1,5 @@
-import { Schema, model } from 'mongoose';
-import { NotificationDoc, NotificationModel } from '../types/notification.type';
+import { Query, Schema, model } from 'mongoose';
+import { INotification, NotificationDoc, NotificationModel } from '../types/notification.type';
 import AppError from '@utils/appError';
 
 const notificationSchema = new Schema<NotificationDoc, NotificationModel, any>(
@@ -26,7 +26,7 @@ const notificationSchema = new Schema<NotificationDoc, NotificationModel, any>(
   }
 );
 
-notificationSchema.pre(/^find/, function (next) {
+notificationSchema.pre<Query<INotification,INotification>>(/^find/, function (next) {
   this.populate({ path: 'user', select: 'name photo email' })
     .populate('message')
     .populate('chat');

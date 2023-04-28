@@ -9,6 +9,7 @@ import {
   Input,
   Spinner,
   Text,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 import UpdateGroupChatModel from '../miscellaneous/UpdateGroupChatModel';
@@ -47,6 +48,7 @@ function SingleChat({
   const [isEndOfMessages, setIsEndOfMessages] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [socketConnected, setSocketConnected] = useState(false);
+  const bgChat = useColorModeValue('rgb(26, 122, 143)', 'rgb(8, 34, 49)');
 
   // Join the socket to the chat room
   useEffect(() => {
@@ -278,11 +280,17 @@ function SingleChat({
             justifyContent="flex-end"
             flexDir="column"
             p="3"
-            bg="#e8e8e8"
+            background={
+              'url(./../../../public/pattern-12.svg)  center center  '
+            }
+            backgroundSize={'contain'}
+            // backgroundColor={'rgb(26, 193, 222)'}
+            bgColor={bgChat}
             w="100%"
             h="100%"
             borderRadius="lg"
             overflowY="hidden"
+            color={'#FFFFFF'}
           >
             {loading ? (
               <Spinner
@@ -328,7 +336,6 @@ function SingleChat({
                   </Box>
                 )}
                 <Input
-                  variant="filled"
                   bg="e0e0e0"
                   color="black"
                   placeholder="Enter a message"
@@ -343,7 +350,6 @@ function SingleChat({
                 aria-label="send message"
                 icon={<ArrowForwardIcon />}
                 bg="rgb(10 85 135)"
-                _hover={{ opacity: '0.8' }}
                 size="lg"
                 borderRadius={'full'}
                 onClick={(e) => {
