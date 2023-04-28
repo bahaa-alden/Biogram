@@ -156,12 +156,12 @@ function SideDrawer({
     try {
       const token = storage.getToken();
       const config: AxiosRequestConfig = {
-        url: `/api/v1/users/${user.id}/notifications/${id}`,
+        url: `/api/v1/chats/${id}/notifications/read`,
         headers: { Authorization: `Bearer ${token}` },
         method: 'PATCH',
-        data: { read: true },
       };
       const res = await axios(config);
+      setFetchNotificationsAgain(!fetchNotificationsAgain);
     } catch (error) {}
   };
 
@@ -211,24 +211,24 @@ function SideDrawer({
               {notification.map((notif: any) => (
                 <MenuItem
                   onClick={() => {
-                    markAsRead(notif.id);
                     if (
                       notif.message &&
                       notif.message.chat.id !== selectedChat.id
                     ) {
+                      markAsRead(notif.message.chat.id);
                       setSelectedChat({ users: [], groupAdmin: {} });
                       setTimeout(function () {
                         setSelectedChat(notif.message.chat);
                       }, 100);
                     } else {
                       if (notif.chat.id !== selectedChat.id) {
+                        markAsRead(notif.chat.id);
                         setSelectedChat({ users: [], groupAdmin: {} });
                         setTimeout(function () {
                           setSelectedChat(notif.chat);
                         }, 100);
                       }
                     }
-                    setFetchNotificationsAgain(!fetchNotificationsAgain);
                   }}
                   key={notif.id}
                 >

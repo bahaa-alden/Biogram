@@ -23,7 +23,7 @@ import io, { Socket } from 'socket.io-client';
 import Lottie from 'lottie-react';
 import animationData from './../../assets/132124-hands-typing-on-keyboard.json';
 
-const ENDPOINT = 'https://biogram.onrender.com/';
+const ENDPOINT = 'http://localhost:5000/';
 
 let socket: Socket, selectedChatCompare: any;
 function SingleChat({
