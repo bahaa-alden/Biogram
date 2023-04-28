@@ -280,9 +280,7 @@ function SingleChat({
             justifyContent="flex-end"
             flexDir="column"
             p="3"
-            background={
-              'url(./../../../public/pattern-12.svg)  center center  '
-            }
+            background={'url(pattern-12.svg)  center center  '}
             backgroundSize={'contain'}
             // backgroundColor={'rgb(26, 193, 222)'}
             bgColor={bgChat}
