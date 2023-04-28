@@ -4,6 +4,7 @@ import {
   getAllNotification,
   getNotification,
   updateNotification,
+  updateCAndMNotifications,
 } from '@controllers/notification.controller';
 import { Router } from 'express';
 import passport from 'passport';
@@ -15,6 +16,7 @@ router.use(
 );
 
 router.route('/').get(getAllNotification).post(createNotification);
+router.patch('/read', updateCAndMNotifications);
 router
   .route('/:id')
   .get(getNotification)

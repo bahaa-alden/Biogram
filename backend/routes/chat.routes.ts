@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import passport from 'passport';
 import messageRouter from '@routes/message.routes';
+import notificationRouter from '@routes/notification.routes';
+
 import {
   accessChat,
   getAllChats,
@@ -16,6 +18,7 @@ import {
 const router = Router();
 
 router.use('/:chatId/messages', messageRouter);
+router.use('/:chatId/notifications', notificationRouter);
 
 router.use(
   passport.authenticate('jwt', { session: false, failWithError: true })
