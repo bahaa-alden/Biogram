@@ -1,11 +1,11 @@
-import { Document, Model, PopulatedDoc, Types } from 'mongoose';
+import { Document, Model, ObjectId, PopulatedDoc, Types } from 'mongoose';
 import { IUser } from './user.type';
 import { IMessage } from './message.type';
 
 export interface IChat {
   id: string;
   name: string;
-  users: PopulatedDoc<IUser>[] | Types.ObjectId[];
+  users:  PopulatedDoc<Document<ObjectId> & IUser>[];
   lastMessage?: Types.ObjectId | PopulatedDoc<IMessage>;
   isGroup: boolean;
   groupAdmin?: Types.ObjectId | PopulatedDoc<IUser>;

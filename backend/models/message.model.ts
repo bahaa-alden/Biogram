@@ -47,7 +47,7 @@ messageSchema.post('save', async function (doc, next) {
 
 messageSchema.post('save', async function (doc) {
   if (!doc.chat) return;
-  const users: Array<PopulatedDoc<IUser> | Types.ObjectId> = doc.chat?.users;
+  const users: Array<PopulatedDoc<IUser> | Types.ObjectId> = doc.chat.users;
 
   users.forEach(async (user: any) => {
     if (!doc.sender) return;
