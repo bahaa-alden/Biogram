@@ -24,7 +24,7 @@ const notificationSchema = new Schema<NotificationDoc, NotificationModel, any>(
     toObject: { virtuals: true, versionKey: false },
     timestamps: true,
   }
-);
+) as Schema<NotificationDoc, NotificationModel, any>; 
 
 notificationSchema.pre(/^find/, function (next) {
   this.populate({ path: 'user', select: 'name photo email' });
