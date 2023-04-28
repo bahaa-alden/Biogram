@@ -1,5 +1,5 @@
-import { Schema, model } from 'mongoose';
-import { ChatModel, ChatDoc } from '../types/chat.type';
+import { Query, Schema, model } from 'mongoose';
+import { ChatModel, ChatDoc, IChat } from '../types/chat.type';
 import AppError from '@utils/appError';
 import Notification from '@models/notification.model';
 
@@ -43,7 +43,7 @@ chatSchema.post('save', async function () {
   await this.populate({ path: 'groupAdmin', select: 'name photo email' });
 });
 
-chatSchema.pre(/^find/, function (next) {
+chatSchema.pre<Query<IChat, IChat>>(/^find/, function (next) {
   this.populate('users', 'name photo email')
     .populate('groupAdmin', 'name photo email')
     .populate({ path: 'lastMessage', select: { chat: 0 } });

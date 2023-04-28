@@ -1,4 +1,4 @@
-import { PopulatedDoc, Schema, Types, model } from 'mongoose';
+import { PopulatedDoc, Query, Schema, Types, model } from 'mongoose';
 import { MessageModel, MessageDoc, IMessage } from '../types/message.type';
 import Chat from './chat.model';
 import { IUser } from '../types/user.type';
@@ -60,7 +60,7 @@ messageSchema.post('save', async function (doc) {
   });
 });
 
-messageSchema.pre(/^find/, function (next) {
+messageSchema.pre<Query<IMessage, IMessage>>(/^find/, function (next) {
   this.populate({ path: 'sender', select: 'name photo email' });
   this.populate({ path: 'chat', select: { lastMessage: 0 } });
   next();
