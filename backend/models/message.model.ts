@@ -52,7 +52,6 @@ messageSchema.post('save', async function (doc) {
   users.forEach(async (user: any) => {
     if (!doc.sender) return;
     if (user.id === doc.sender.id) return;
-    if (!doc.chat) return;
     await Notification.create({
       message: doc.id,
       chat: doc.chat.id,
