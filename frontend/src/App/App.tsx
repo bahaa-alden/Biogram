@@ -11,7 +11,7 @@ import ProtectedRoutes from '../utils/ProtectedRoutes';
 import { Button, useColorMode, useColorModeValue } from '@chakra-ui/react';
 
 function App() {
-  const bg = useColorModeValue('rgb(26, 193, 222)', '#060609');
+  const bg = useColorModeValue('rgb(26, 193, 222)', 'rgb(8, 34, 49)');
 
   return (
     <div className={Styles.App} style={{ background: bg }}>

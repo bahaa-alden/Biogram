@@ -1,4 +1,4 @@
-import { Schema, model, QueryOptions } from 'mongoose';
+import { Schema, model, QueryOptions, Query } from 'mongoose';
 import validator from 'validator';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -65,7 +65,7 @@ userSchema.pre('save', function (next) {
   next();
 });
 
-userSchema.pre<QueryOptions>(/^find/, function (next) {
+userSchema.pre<Query<IUser, IUser>>(/^find/, function (next) {
   this.find({ active: { $ne: false } });
   next();
 });
