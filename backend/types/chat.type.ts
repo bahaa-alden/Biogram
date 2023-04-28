@@ -5,10 +5,10 @@ import { IMessage } from './message.type';
 export interface IChat {
   id: string;
   name: string;
-  users:  PopulatedDoc<Document<ObjectId> & IUser>[];
-  lastMessage?: Types.ObjectId | PopulatedDoc<IMessage>;
+  users: PopulatedDoc<Document<ObjectId> & IUser>[];
+  lastMessage?: PopulatedDoc<Document<ObjectId> & IMessage>;
   isGroup: boolean;
-  groupAdmin?: Types.ObjectId | PopulatedDoc<IUser>;
+  groupAdmin?: PopulatedDoc<Document<ObjectId> & IUser>;
   createNotification(userId: string): void;
 }
 

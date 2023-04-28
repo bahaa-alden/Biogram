@@ -4,7 +4,7 @@ import { IChat } from './chat.type';
 
 export interface IMessage {
   content: string;
-  sender: PopulatedDoc<Document<ObjectId> & IChat>;
+  sender: PopulatedDoc<Document<ObjectId> & IUser>;
   chat: IChat & PopulatedDoc<Document<ObjectId> & IChat>;
 }
 
