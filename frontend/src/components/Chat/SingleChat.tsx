@@ -142,7 +142,7 @@ function SingleChat({
       setMessages([]);
       fetchMessages();
       setPreviousSelectedChat(selectedChat);
-      setNewMessage('')
+      setNewMessage('');
     }
     selectedChatCompare = selectedChat;
     // Listen for isTyping events from the server
@@ -310,6 +310,22 @@ function SingleChat({
               }}
               style={{ marginBottom: '5px' }}
             >
+              {isTyping && (
+                <Box color="black">
+                  <Lottie
+                    style={{
+                      width: 40,
+                      height: 20,
+                    }}
+                    animationData={animationData}
+                    autoPlay={true}
+                    loop={true}
+                    rendererSettings={{
+                      preserveAspectRatio: 'xMidYMid slice',
+                    }}
+                  />
+                </Box>
+              )}
               <FormControl
                 // overflow={'hidden'}
                 pt={'1'}
@@ -320,22 +336,6 @@ function SingleChat({
                 width={'99%'}
                 margin={'auto'}
               >
-                {isTyping && (
-                  <Box color="black">
-                    <Lottie
-                      style={{
-                        width: 40,
-                        height: 20,
-                      }}
-                      animationData={animationData}
-                      autoPlay={true}
-                      loop={true}
-                      rendererSettings={{
-                        preserveAspectRatio: 'xMidYMid slice',
-                      }}
-                    />
-                  </Box>
-                )}
                 <Input
                   bg={'rgb(1,12,20)'}
                   borderLeftRadius={'full'}
