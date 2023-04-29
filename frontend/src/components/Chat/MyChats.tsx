@@ -23,7 +23,7 @@ let socket: Socket;
 function MyChat({ fetchAgain, bg, color }: any) {
   const { selectedChat, setSelectedChat, user, chats, setChats } = chatState();
   const bgCS = useColorModeValue('#38b2ac', 'rgb(10 85 135)');
-  const bgC = useColorModeValue('#e8e8e8', 'rgb(8, 34, 60)');
+  const bgC = useColorModeValue('#e8e8e8', 'rgb(25 40 56)');
 
   const [socketConnected, setSocketConnected] = useState(false);
 
