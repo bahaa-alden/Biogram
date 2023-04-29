@@ -18,7 +18,6 @@ import { globalErrorHandler, notFound } from '@middlewares/error.middleware';
 // import csurf from 'csurf';
 import AppError from '@utils/appError';
 import userRouter from '@routes/user.routes';
-import xss from '@middlewares/xss.middleware';
 import { settings } from './config/settings';
 import routes from '@routes/index.routes';
 import JWTStrategy from '@middlewares/passport.config';
@@ -50,7 +49,6 @@ app.use(json({ limit: '10kb' }));
 app.use(urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(mongoSanitize());
-app.use(xss);
 app.use(
   hpp({
     whitelist: [
