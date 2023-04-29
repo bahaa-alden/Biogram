@@ -23,6 +23,7 @@ import ScrollableChat from './ScrollableChat';
 import io, { Socket } from 'socket.io-client';
 import Lottie from 'lottie-react';
 import animationData from './../../assets/132124-hands-typing-on-keyboard.json';
+import { Form } from 'react-router-dom';
 
 const ENDPOINT = 'https://biogram.onrender.com/';
 
@@ -43,12 +44,12 @@ function SingleChat({
   const [isTyping, setIsTyping] = useState(false);
   const [userTyping, setUserTyping] = useState('');
   const [page, setPage] = useState(1);
-  const pageSize = 14;
+  const pageSize = 16;
   const [previousSelectedChat, setPreviousSelectedChat] = useState<Chat>();
   const [isEndOfMessages, setIsEndOfMessages] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [socketConnected, setSocketConnected] = useState(false);
-  const bgChat = useColorModeValue('rgb(26, 122, 143)', 'rgb(8, 34, 49)');
+  const bgChat = useColorModeValue('rgb(0, 170, 199)', 'rgb(8, 34, 49)');
 
   // Join the socket to the chat room
   useEffect(() => {
@@ -75,7 +76,6 @@ function SingleChat({
   const fetchMessages = async () => {
     if (!selectedChat.users.length) return;
     try {
-      setLoading(true);
       const token = storage.getToken();
       const config: AxiosRequestConfig = {
         url: `/api/v1/chats/${selectedChat.id}/messages?page=${page}&limit=${pageSize}`,
@@ -97,7 +97,9 @@ function SingleChat({
 
       setPage(page + 1);
       setIsEndOfMessages(data.length < pageSize);
-
+      setTimeout(function () {
+        containerRef.current?.focus();
+      }, 0);
       socket.emit('join chat', selectedChat.id);
     } catch (error) {
       toast({
@@ -108,7 +110,6 @@ function SingleChat({
         position: 'bottom',
       });
     }
-    setLoading(false);
   };
 
   const handleScroll = async () => {
@@ -141,6 +142,7 @@ function SingleChat({
       setMessages([]);
       fetchMessages();
       setPreviousSelectedChat(selectedChat);
+      setNewMessage('')
     }
     selectedChatCompare = selectedChat;
     // Listen for isTyping events from the server
@@ -169,46 +171,45 @@ function SingleChat({
     // };
   }, [selectedChat]);
 
-  const sendMessage = async (e: any, send: boolean) => {
-    if (e.key === 'Enter' || send) {
-      if (!newMessage) {
-        toast({
-          title: 'Please write a message!',
-          status: 'warning',
-          duration: 2000,
-          isClosable: true,
-          position: 'bottom',
-        });
-        return;
-      }
-      try {
-        const token = storage.getToken();
-        const config: AxiosRequestConfig = {
-          url: `/api/v1/chats/${selectedChat.id}/messages`,
-          headers: { Authorization: `Bearer ${token}` },
-          method: 'POST',
-          data: { content: newMessage },
-        };
-
-        setNewMessage('');
-        const { data } = await (await axios(config)).data.data;
-        scrollToBottom();
-        socket.emit('new message', data);
-        setMessages([...messages, data]);
-        setFetchAgain(!fetchAgain);
-      } catch (err: any) {
-        toast({
-          title: 'Error  Occurred!',
-          description: 'Failed to send the message',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-          position: 'bottom',
-        });
-      }
-      scrollToBottom();
-      socket.emit('stop typing', { chatId: selectedChat.id, userId: user.id });
+  const sendMessage = async (e: any) => {
+    e.preventDefault();
+    if (!newMessage) {
+      toast({
+        title: 'Please write a message!',
+        status: 'warning',
+        duration: 2000,
+        isClosable: true,
+        position: 'bottom',
+      });
+      return;
     }
+    try {
+      const token = storage.getToken();
+      const config: AxiosRequestConfig = {
+        url: `/api/v1/chats/${selectedChat.id}/messages`,
+        headers: { Authorization: `Bearer ${token}` },
+        method: 'POST',
+        data: { content: newMessage },
+      };
+
+      setNewMessage('');
+      const { data } = await (await axios(config)).data.data;
+      scrollToBottom();
+      socket.emit('new message', data);
+      setMessages([...messages, data]);
+      setFetchAgain(!fetchAgain);
+    } catch (err: any) {
+      toast({
+        title: 'Error  Occurred!',
+        description: 'Failed to send the message',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom',
+      });
+    }
+    scrollToBottom();
+    socket.emit('stop typing', { chatId: selectedChat.id, userId: user.id });
   };
 
   useEffect(() => {
@@ -279,17 +280,14 @@ function SingleChat({
             display="flex"
             justifyContent="flex-end"
             flexDir="column"
-            p="3"
-            background={
-              'url(pattern-12.svg)  center center  '
-            }
+            background={'url(pattern-12.svg)  center center  '}
             backgroundSize={'contain'}
             bgColor={bgChat}
             w="100%"
             h="100%"
-            borderRadius="lg"
             overflowY="hidden"
             color={'#FFFFFF'}
+            borderRadius={'5px'}
           >
             {loading ? (
               <Spinner
@@ -306,17 +304,21 @@ function SingleChat({
                 handleScroll={handleScroll}
               />
             )}
-            <Box
-              display={'flex'}
-              justifyContent={'space-between'}
-              alignItems={'center'}
-              gap="10px"
-              mt="1"
+            <form
+              onSubmit={(e) => {
+                sendMessage(e);
+              }}
+              style={{ marginBottom: '5px' }}
             >
               <FormControl
-                onKeyDown={(e) => {
-                  sendMessage(e, false);
-                }}
+                // overflow={'hidden'}
+                pt={'1'}
+                display={'flex'}
+                gap={'5px'}
+                justifyContent={'space-between'}
+                alignItems={'center'}
+                width={'99%'}
+                margin={'auto'}
               >
                 {isTyping && (
                   <Box color="black">
@@ -335,27 +337,28 @@ function SingleChat({
                   </Box>
                 )}
                 <Input
-                  bg="e0e0e0"
-                  color="black"
+                  bg={'rgb(1,12,20)'}
+                  borderLeftRadius={'full'}
+                  borderRightRadius={'full'}
+                  color={'white'}
                   placeholder="Enter a message"
                   onChange={(e) => {
                     setNewMessage(e.target.value);
                   }}
                   value={newMessage}
-                  border="1px solid gray"
+                  border="none"
+                />
+                <IconButton
+                  type="submit"
+                  aria-label="send message"
+                  icon={<ArrowForwardIcon />}
+                  bg="rgb(10 85 135)"
+                  borderRadius={'full'}
+                  _hover={{}}
+                  size={'md'}
                 />
               </FormControl>
-              <IconButton
-                aria-label="send message"
-                icon={<ArrowForwardIcon />}
-                bg="rgb(10 85 135)"
-                size="lg"
-                borderRadius={'full'}
-                onClick={(e) => {
-                  sendMessage(e, true);
-                }}
-              />
-            </Box>
+            </form>
           </Box>
         </>
       ) : (

@@ -22,7 +22,7 @@ function ChatBox({
       }}
       alignItems="center"
       flexDir="column"
-      p="3"
+      p="8px 8px 5px"
       bg={bg}
       w={{ base: '100%', md: '68%' }}
       borderRadius="lg"

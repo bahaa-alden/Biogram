@@ -53,3 +53,14 @@ export const isSameSenderMargin = (
 
 export const isSameUser = (messages: any, m: any, i: any) =>
   i > 0 && messages[i - 1].sender.id === m.sender.id;
+
+export const getMessageTime = (myTime: Date) => {
+  let hour = myTime.getHours();
+  let minute: number | string = myTime.getMinutes();
+  let amPm = hour >= 12 ? 'pm' : 'am';
+  hour = hour % 12;
+  hour = hour ? hour : 12; // the hour '0' should be '12'
+  minute = minute < 10 ? '0' + minute : minute;
+  let timeInAmPm = hour + ':' + minute + ' ' + amPm;
+  return timeInAmPm;
+};

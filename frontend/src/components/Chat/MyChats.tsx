@@ -7,21 +7,24 @@ import {
   Stack,
   Text,
   useColorModeValue,
+  Avatar,
 } from '@chakra-ui/react';
 import axios, { AxiosRequestConfig } from 'axios';
 import { storage } from '../../utils/storage';
 import { AddIcon } from '@chakra-ui/icons';
 import ChatLoading from '../../utils/ChatLoading';
-import { getSender } from '../../config/chatLogics';
+import { getSender, getSenderFull } from '../../config/chatLogics';
 import GroupChatModel from '../miscellaneous/GroupChatModel';
 import { Chat } from '../../types/interfaces';
 import io, { Socket } from 'socket.io-client';
 const ENDPOINT = 'https://biogram.onrender.com/';
 let socket: Socket;
 
-function MyChat({ fetchAgain, bg }: any) {
+function MyChat({ fetchAgain, bg, color }: any) {
   const { selectedChat, setSelectedChat, user, chats, setChats } = chatState();
-  const bgC = useColorModeValue('#38b2ac', 'rgb(10 85 135)');
+  const bgCS = useColorModeValue('#38b2ac', 'rgb(10 85 135)');
+  const bgC = useColorModeValue('#e8e8e8', 'rgb(8, 34, 60)');
+
   const [socketConnected, setSocketConnected] = useState(false);
 
   const toast = useToast();
@@ -66,10 +69,10 @@ function MyChat({ fetchAgain, bg }: any) {
       flexDir="column"
       alignItems="center"
       py="3"
-      px={{ base: '3', md: '1', lg: '3' }}
+      px={{ base: '1', md: '1', lg: '3' }}
       // bg="white"
       w={{ base: '100%', md: '31%' }}
-      borderRadius="lg"
+      borderRadius="md"
       borderWidth="1px"
     >
       <Box
@@ -78,7 +81,7 @@ function MyChat({ fetchAgain, bg }: any) {
         alignItems="center"
         w="100%"
         pb="3"
-        px={{ base: '3', md: '8px', lg: '1' }}
+        px={{ base: '2', md: '8px', lg: '1' }}
         fontSize={{ base: '25px', md: '20px', lg: '22px' }}
         fontFamily="work sans"
       >
@@ -86,7 +89,7 @@ function MyChat({ fetchAgain, bg }: any) {
         <GroupChatModel socket={socket}>
           <Button
             display="flex"
-            px={{ base: '3', md: '1', lg: '3' }}
+            px={{ base: '2', md: '1', lg: '3' }}
             fontSize={{ base: '18px', md: '15px', lg: '16px' }}
             rightIcon={<AddIcon />}
           >
@@ -97,17 +100,26 @@ function MyChat({ fetchAgain, bg }: any) {
       <Box
         display="flex"
         flexDir="column"
-        p="3"
+        p="2"
         bg={bg}
         w="100%"
         h="100%"
-        borderRadius="lg"
+        borderRadius="md"
         overflow="hidden"
       >
         {chats ? (
           <Stack overflowY="scroll">
             {chats.map((chat: Chat) => (
               <Box
+                display={'flex'}
+                justifyContent={'flex-start'}
+                gap="15px"
+                cursor="pointer"
+                bg={selectedChat === chat ? bgCS : bgC}
+                px="3"
+                py="2"
+                borderRadius="md"
+                key={chat.id}
                 onClick={() => {
                   if (chat.id !== selectedChat.id) {
                     setSelectedChat({ users: [], groupAdmin: {} });
@@ -116,28 +128,25 @@ function MyChat({ fetchAgain, bg }: any) {
                     }, 100);
                   }
                 }}
-                cursor="pointer"
-                bg={selectedChat === chat ? `${bgC}` : '#e8e8e8'}
-                color={selectedChat === chat ? 'white' : 'black'}
-                px="3"
-                py="2"
-                borderRadius="lg"
-                key={chat.id}
               >
-                <Text fontSize={'18px'}>
-                  {!chat.isGroup ? getSender(user, chat.users) : chat.name}
-                </Text>
-                {chat.lastMessage && (
-                  <>
-                    <span style={{ fontWeight: 'bold' }}>
-                      {chat.lastMessage?.sender.name?.split(' ')[0]}:
-                    </span>
-                    {chat.lastMessage?.content?.length &&
-                    chat.lastMessage?.content?.length > 18
-                      ? `${chat.lastMessage?.content?.slice(0, 18)}...`
-                      : chat.lastMessage?.content}
-                  </>
-                )}
+                <Avatar src={getSenderFull(user, chat.users).photo} />
+                <Box>
+                  {' '}
+                  <Text fontSize={'18px'}>
+                    {!chat.isGroup ? getSender(user, chat.users) : chat.name}
+                  </Text>
+                  {chat.lastMessage && (
+                    <>
+                      <span style={{ fontWeight: 'bold' }}>
+                        {chat.lastMessage?.sender.name?.split(' ')[0] + ': '}
+                      </span>
+                      {chat.lastMessage?.content?.length &&
+                      chat.lastMessage?.content?.length > 18
+                        ? `${chat.lastMessage?.content?.slice(0, 18)}...`
+                        : chat.lastMessage?.content}
+                    </>
+                  )}
+                </Box>
               </Box>
             ))}
           </Stack>

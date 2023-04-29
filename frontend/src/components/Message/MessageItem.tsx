@@ -6,10 +6,12 @@ import {
   isSameSenderMargin,
   isSameUser,
   showSenderName,
+  getMessageTime,
 } from '../../config/chatLogics';
 import ProfileModel from '../miscellaneous/ProfileModel';
 import { Avatar, Box, Tooltip } from '@chakra-ui/react';
 import colors from '../../utils/colors';
+import moment from 'moment';
 
 function getBackgroundColor(user: any) {
   const index =
@@ -72,38 +74,39 @@ function MessageItem({ message, messages, index }: any) {
           </Tooltip>
         </ProfileModel>
       )}
-      <Tooltip
-        label={`${getDateFormatted(message.createdAt)}`}
-        placement={message.sender.id === user.id ? 'left-end' : 'right-end'}
+
+      <Box
+        className={`${styles.content} ${
+          user.id === message.sender.id ? styles.sender : styles.receiver
+        }  }`}
+        pos="relative"
+        ml={`${isSameSenderMargin(
+          messages,
+          message,
+          index,
+          user.id,
+          selectedChat.isGroup
+        )}px`}
+        mt={isSameUser(messages, message, index) ? '1px' : '10px'}
       >
-        <span
-          className={`${styles.content} ${
-            user.id === message.sender.id ? styles.sender : styles.receiver
-          }  }`}
-          style={{
-            marginLeft: isSameSenderMargin(
-              messages,
-              message,
-              index,
-              user.id,
-              selectedChat.isGroup
-            ),
-            marginTop: isSameUser(messages, message, index) ? 1 : 10,
-          }}
+        {showSenderName(messages, message, index, user.id) &&
+          selectedChat.isGroup && (
+            <span color={getBackgroundColor(message.sender.name)}>
+              {message.sender.name}
+            </span>
+          )}
+        <Box
+          display={'flex'}
+          gap="8px"
+          justifyContent={'center'}
+          alignItems={'center'}
         >
-          {showSenderName(messages, message, index, user.id) &&
-            selectedChat.isGroup && (
-              <p
-                style={{
-                  color: `${getBackgroundColor(message.sender.name)}`,
-                }}
-              >
-                {message.sender.name}
-              </p>
-            )}
-          {message.content}
-        </span>
-      </Tooltip>
+          <span>{message.content}</span>
+          <span style={{ fontSize: ' 12px', position: 'relative', top: '5px' }}>
+            {getMessageTime(new Date(message.createdAt))}
+          </span>
+        </Box>
+      </Box>
     </Box>
   );
 }
