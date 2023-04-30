@@ -135,6 +135,19 @@ function SingleChat({
     }, 0);
   };
 
+  const markAsRead = async (id: any) => {
+    try {
+      const token = storage.getToken();
+      const config: AxiosRequestConfig = {
+        url: `/api/v1/chats/${id}/notifications/read`,
+        headers: { Authorization: `Bearer ${token}` },
+        method: 'PATCH',
+      };
+      const res = await axios(config);
+      setFetchNotificationsAgain(!fetchNotificationsAgain);
+    } catch (error) {}
+  };
+
   useEffect(() => {
     if (selectedChat !== previousSelectedChat) {
       setPage(1);
@@ -143,6 +156,7 @@ function SingleChat({
       fetchMessages();
       setPreviousSelectedChat(selectedChat);
       setNewMessage('');
+      markAsRead(selectedChat.id)
     }
     selectedChatCompare = selectedChat;
     // Listen for isTyping events from the server
