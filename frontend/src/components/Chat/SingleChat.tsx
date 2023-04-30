@@ -308,7 +308,11 @@ function SingleChat({
               onSubmit={(e) => {
                 sendMessage(e);
               }}
-              style={{ marginBottom: '5px' }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                marginBottom: '5px',
+              }}
             >
               {isTyping && (
                 <Box color="black">
