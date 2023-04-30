@@ -152,19 +152,6 @@ function SideDrawer({
     setLoadingChat(false);
   };
 
-  const markAsRead = async (id: string) => {
-    try {
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/chats/${id}/notifications/read`,
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'PATCH',
-      };
-      const res = await axios(config);
-      setFetchNotificationsAgain(!fetchNotificationsAgain);
-    } catch (error) {}
-  };
-
   useEffect(() => {
     const h = setTimeout(function () {
       handleSearch();
@@ -215,14 +202,12 @@ function SideDrawer({
                       notif.message &&
                       notif.message.chat.id !== selectedChat.id
                     ) {
-                      markAsRead(notif.message.chat.id);
                       setSelectedChat({ users: [], groupAdmin: {} });
                       setTimeout(function () {
                         setSelectedChat(notif.message.chat);
                       }, 100);
                     } else {
                       if (notif.chat.id !== selectedChat.id) {
-                        markAsRead(notif.chat.id);
                         setSelectedChat({ users: [], groupAdmin: {} });
                         setTimeout(function () {
                           setSelectedChat(notif.chat);
