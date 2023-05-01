@@ -11,7 +11,7 @@ import {
 import ProfileModel from '../miscellaneous/ProfileModel';
 import { Avatar, Box, Tooltip } from '@chakra-ui/react';
 import colors from '../../utils/colors';
-import moment from 'moment';
+import { franc } from 'franc';
 
 function getBackgroundColor(user: any) {
   const index =
@@ -97,11 +97,19 @@ function MessageItem({ message, messages, index }: any) {
           )}
         <Box
           display={'flex'}
-          gap="8px"
-          justifyContent={'center'}
-          alignItems={'center'}
+          gap="3px"
+          justifyContent={'flex-end'}
+          alignItems={'end'}
+          flexWrap={'wrap'}
         >
-          <span>{message.content}</span>
+          <span
+            style={{
+              wordBreak: 'break-all',
+              direction: `${franc(message.content) === 'arb' ? 'rtl' : 'ltr'}`,
+            }}
+          >
+            {message.content}
+          </span>
           <span style={{ fontSize: ' 12px', position: 'relative', top: '5px' }}>
             {getMessageTime(new Date(message.createdAt))}
           </span>

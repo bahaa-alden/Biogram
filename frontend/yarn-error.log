@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/bin/node /usr/bin/yarn add @vitejs/plugin-react-swc
+  /usr/local/bin/node /usr/bin/yarn add --dev @types/langdetect
 
 PATH: 
   /home/bahaa/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
@@ -14,8 +14,17 @@ Platform:
   linux x64
 
 Trace: 
-  Error: getaddrinfo EAI_AGAIN registry.yarnpkg.com
-      at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:107:26)
+  Error: https://registry.yarnpkg.com/@types%2flangdetect: Not found
+      at params.callback [as _callback] (/usr/lib/node_modules/yarn/lib/cli.js:66145:18)
+      at self.callback (/usr/lib/node_modules/yarn/lib/cli.js:140890:22)
+      at Request.emit (node:events:513:28)
+      at Request.<anonymous> (/usr/lib/node_modules/yarn/lib/cli.js:141862:10)
+      at Request.emit (node:events:513:28)
+      at IncomingMessage.<anonymous> (/usr/lib/node_modules/yarn/lib/cli.js:141784:12)
+      at Object.onceWrapper (node:events:627:28)
+      at IncomingMessage.emit (node:events:525:35)
+      at endReadableNT (node:internal/streams/readable:1359:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
 
 npm manifest: 
   {
@@ -36,9 +45,12 @@ npm manifest:
       "@emotion/react": "^11.10.6",
       "@emotion/styled": "^11.10.6",
       "@rollup/plugin-terser": "^0.4.1",
+      "@vitejs/plugin-react-swc": "^3.3.0",
       "axios": "^1.3.4",
       "framer-motion": "^10.12.2",
       "js-cookie": "^3.0.1",
+      "langdetect": "^0.2.1",
+      "moment": "^2.29.4",
       "prettier": "^2.8.7",
       "prop-types": "^15.8.1",
       "react": "^18.2.0",
@@ -2346,6 +2358,72 @@ Lockfile:
       magic-string "^0.25.0"
       string.prototype.matchall "^4.0.6"
   
+  "@swc/core-darwin-arm64@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-darwin-arm64/-/core-darwin-arm64-1.3.51.tgz#fa799937e64e019f3aa4346ed1d039d55042cfc3"
+    integrity sha512-DM15fJgaXQ+BOoTlMCBoRBSzkpC2V8vAXaAvh3BZ+BI6/03FUQ0j9CMIaSkss3VOv+WwqzllmcT71C/oVDQ7Tg==
+  
+  "@swc/core-darwin-x64@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-darwin-x64/-/core-darwin-x64-1.3.51.tgz#3bdf5709ffd6ee9a49bf8175511997b946b7d327"
+    integrity sha512-EPAneufZfFQUkpkf2m8Ap8TajLvjWI+UmDQz54QaofLaigXgrnLoqTtnZHBfDbUTApGYz3GaqjfZ2fMLGiISLQ==
+  
+  "@swc/core-linux-arm-gnueabihf@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-linux-arm-gnueabihf/-/core-linux-arm-gnueabihf-1.3.51.tgz#ec5e41a2e9794a0cc915916bc2ed05b2fb587df5"
+    integrity sha512-sASxO3lJjlY5g8S25yCQirDOW6zqBNeDSUCBrulaVxttx0PcL64kc6qaOlM3HKlNO4W1P7RW/mGFR4bBov+yIg==
+  
+  "@swc/core-linux-arm64-gnu@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-linux-arm64-gnu/-/core-linux-arm64-gnu-1.3.51.tgz#3604c3ef5b4a4e8adc20c046c6ebb80f671bb1b0"
+    integrity sha512-z8yHRUK+5mRxSQkw9uND8QSt8lTrW0X8blmP12Q7c7RKWOHqIaGS60a3VvLuTal7k48K4YTstSevIrGwGK88sA==
+  
+  "@swc/core-linux-arm64-musl@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-linux-arm64-musl/-/core-linux-arm64-musl-1.3.51.tgz#6aedabc8223e6f1a2ee8d20ad659782f595b5af8"
+    integrity sha512-lMlp09lv6qDURvETw4AAZAjaJfvjwHjiAuB+JuZrgP3zdxB21M6cMas3EjAGXtNabpU1FJu+8Lsys6/GBBjsPQ==
+  
+  "@swc/core-linux-x64-gnu@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-linux-x64-gnu/-/core-linux-x64-gnu-1.3.51.tgz#790733e385260c7222a9328b30580e6d6227edba"
+    integrity sha512-6zK4tDr6do6RFTJv38Rb8ZjBLdfSN7GeuyOJpblz1Qu62RqyY2Zf3fxuCZY9tkoEepZ0MvU0d4D7HhAUYKj20A==
+  
+  "@swc/core-linux-x64-musl@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-linux-x64-musl/-/core-linux-x64-musl-1.3.51.tgz#ef62129e963b92af460d37d652845cfb4c503aa7"
+    integrity sha512-ZwW+X9XdEiAszX+zfaLdOVfi5rQP3vnVwuNAiuX9eq5jHdfOKfKaNtJaGTD8w8NgMavaBM5AMaCHshFVNF0vRw==
+  
+  "@swc/core-win32-arm64-msvc@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-win32-arm64-msvc/-/core-win32-arm64-msvc-1.3.51.tgz#f38c07bacfa1ace04d41bb4f3109458305e55823"
+    integrity sha512-w+IX4xCIZH6RQG7RrOOrrHqIqM7JIj9BDZHM9LAYC5MIbDinwjnSUXz7bpn0L1LRusvPtmbTulLuSkmVBSSwAg==
+  
+  "@swc/core-win32-ia32-msvc@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-win32-ia32-msvc/-/core-win32-ia32-msvc-1.3.51.tgz#39c97bff1a249f3f77786d61debab82744b2dc9a"
+    integrity sha512-Bzv/h0HkoKkTWOOoHtehId/6AS5hLBbWE5czzcQc8SWs+BNNV8zjWoq1oYn7/gLLEhdKaBAxv9q7RHzOfBx28A==
+  
+  "@swc/core-win32-x64-msvc@1.3.51":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core-win32-x64-msvc/-/core-win32-x64-msvc-1.3.51.tgz#7863dc645e149b92df85ce6fa872bee44a24f540"
+    integrity sha512-dTKAdSd0e2Sfz3Sl3m6RGLQbk6jdSIh8TlFomF4iiHDHq4PxLTzjaOVvKUAP5wux9DtBnAgZeSHMuQfM4aL9oA==
+  
+  "@swc/core@^1.3.42":
+    version "1.3.51"
+    resolved "https://registry.yarnpkg.com/@swc/core/-/core-1.3.51.tgz#612de4c9be8d7237f74521ed9044db6b540c5e26"
+    integrity sha512-/fdKlrs2NacLeOKrVZjCPfw5GeUIyBcJg0GDBn0+qwC3Y6k85m4aswK1sfRDF3nzyeXXoBr7YBb+/cSdFq9pVw==
+    optionalDependencies:
+      "@swc/core-darwin-arm64" "1.3.51"
+      "@swc/core-darwin-x64" "1.3.51"
+      "@swc/core-linux-arm-gnueabihf" "1.3.51"
+      "@swc/core-linux-arm64-gnu" "1.3.51"
+      "@swc/core-linux-arm64-musl" "1.3.51"
+      "@swc/core-linux-x64-gnu" "1.3.51"
+      "@swc/core-linux-x64-musl" "1.3.51"
+      "@swc/core-win32-arm64-msvc" "1.3.51"
+      "@swc/core-win32-ia32-msvc" "1.3.51"
+      "@swc/core-win32-x64-msvc" "1.3.51"
+  
   "@types/cookie@^0.3.3":
     version "0.3.3"
     resolved "https://registry.yarnpkg.com/@types/cookie/-/cookie-0.3.3.tgz#85bc74ba782fb7aa3a514d11767832b0e3bc6803"
@@ -2438,6 +2516,13 @@ Lockfile:
     version "2.0.3"
     resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-2.0.3.tgz#a136f83b0758698df454e328759dbd3d44555311"
     integrity sha512-NfQ4gyz38SL8sDNrSixxU2Os1a5xcdFxipAFxYEuLUlvU2uDwS4NUpsImcf1//SlWItCVMMLiylsxbmNMToV/g==
+  
+  "@vitejs/plugin-react-swc@^3.3.0":
+    version "3.3.0"
+    resolved "https://registry.yarnpkg.com/@vitejs/plugin-react-swc/-/plugin-react-swc-3.3.0.tgz#d443a4bbb423542c5a089c65a58dca597170c549"
+    integrity sha512-Ycg+n2eyCOTpn/wRy+evVo859+hw7qCj9iaX5CMny6x1fx1Uoq0xBG+a98lFtwLNGfGEnpI0F26YigRuxCRkwg==
+    dependencies:
+      "@swc/core" "^1.3.42"
   
   "@vitejs/plugin-react@^3.1.0":
     version "3.1.0"
@@ -4043,6 +4128,13 @@ Lockfile:
       array-includes "^3.1.5"
       object.assign "^4.1.3"
   
+  langdetect@^0.2.1:
+    version "0.2.1"
+    resolved "https://registry.yarnpkg.com/langdetect/-/langdetect-0.2.1.tgz#d7ca8339497a4dd65c4df935d46e344bfea86d01"
+    integrity sha512-vWK2xz8Urp6J0RFwnrR8+d0DQ2yIGjCOqAxBoXNMVFv4ZDmFsbCcNEtwuVnaQ5+ltwZ4Z5rTtuTwHSaEWFdw+A==
+    dependencies:
+      unicode-9.0.0 "0.7.0"
+  
   language-subtag-registry@~0.3.2:
     version "0.3.22"
     resolved "https://registry.yarnpkg.com/language-subtag-registry/-/language-subtag-registry-0.3.22.tgz#2e1500861b2e457eba7e7ae86877cbd08fa1fd1d"
@@ -4193,6 +4285,11 @@ Lockfile:
     version "1.2.8"
     resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.8.tgz#c1a464e7693302e082a075cee0c057741ac4772c"
     integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
+  
+  moment@^2.29.4:
+    version "2.29.4"
+    resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
+    integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
   
   ms@2.1.2:
     version "2.1.2"
@@ -5044,6 +5141,11 @@ Lockfile:
       has-bigints "^1.0.2"
       has-symbols "^1.0.3"
       which-boxed-primitive "^1.0.2"
+  
+  unicode-9.0.0@0.7.0:
+    version "0.7.0"
+    resolved "https://registry.yarnpkg.com/unicode-9.0.0/-/unicode-9.0.0-0.7.0.tgz#4d303caf9c6dbf2b979943c18a384e226643b937"
+    integrity sha512-aqL0GQ3LB2nC3ZEKBZ93hfn7QY80sVGk+OT9Sc6lTxl4wRiwzUBRlAjJB9Fe4+5XydXOV+tb8udp5oRBoED5Tw==
   
   unicode-canonical-property-names-ecmascript@^2.0.0:
     version "2.0.0"
