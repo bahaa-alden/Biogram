@@ -156,7 +156,7 @@ function SingleChat({
       fetchMessages();
       setPreviousSelectedChat(selectedChat);
       setNewMessage('');
-      markAsRead(selectedChat.id)
+      markAsRead(selectedChat.id);
     }
     selectedChatCompare = selectedChat;
     // Listen for isTyping events from the server
@@ -210,7 +210,7 @@ function SingleChat({
       const { data } = await (await axios(config)).data.data;
       scrollToBottom();
       socket.emit('new message', data);
-      setMessages([...messages, data]);
+
       setFetchAgain(!fetchAgain);
     } catch (err: any) {
       toast({
