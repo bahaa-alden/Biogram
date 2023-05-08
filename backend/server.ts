@@ -36,7 +36,7 @@ io.on('connection', (socket) => {
     socket.broadcast.in(chatId).emit('stop typing', { chatId, userId });
   });
   socket.on('new message', (newMessageReceived) => {
-    var chat = newMessageReceived.chat;
+    let { chat } = newMessageReceived;
 
     if (!chat.users) return console.log('chats.users not defined');
     else {

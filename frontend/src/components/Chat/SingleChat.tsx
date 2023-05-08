@@ -149,7 +149,7 @@ function SingleChat({
   };
 
   useEffect(() => {
-    if (selectedChat !== previousSelectedChat) {
+    if (selectedChat !== previousSelectedChat && selectedChat.id !== '') {
       setPage(1);
       setIsEndOfMessages(false);
       setMessages([]);
@@ -210,6 +210,7 @@ function SingleChat({
       const { data } = await (await axios(config)).data.data;
       scrollToBottom();
       socket.emit('new message', data);
+      setMessages([...messages, data]);
 
       setFetchAgain(!fetchAgain);
     } catch (err: any) {
