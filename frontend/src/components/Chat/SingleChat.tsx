@@ -25,7 +25,7 @@ import Lottie from 'lottie-react';
 import animationData from './../../assets/132124-hands-typing-on-keyboard.json';
 import { Form } from 'react-router-dom';
 
-const ENDPOINT = 'https://biogram.onrender.com/';
+const ENDPOINT = 'http://localhost:5000/';
 
 let socket: Socket, selectedChatCompare: any;
 function SingleChat({
@@ -136,6 +136,7 @@ function SingleChat({
   };
 
   const markAsRead = async (id: any) => {
+    if (!id) return;
     try {
       const token = storage.getToken();
       const config: AxiosRequestConfig = {
@@ -237,6 +238,7 @@ function SingleChat({
         setFetchNotificationsAgain(!fetchNotificationsAgain);
       } else {
         setMessages([...messages, newMessageReceived]);
+        setFetchAgain(!fetchAgain);
       }
     });
     socket.on('group rename', () => {

@@ -15,7 +15,7 @@ const server = app.listen(port, () =>
 
 const io = new Server(server, {
   pingTimeout: 60000,
-  cors: { origin: 'https://biogram.onrender.com' },
+  cors: { origin: 'http://localhost:5173' },
 });
 
 io.on('connection', (socket) => {

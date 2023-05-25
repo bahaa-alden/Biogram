@@ -17,7 +17,7 @@ import { getSender, getSenderFull } from '../../config/chatLogics';
 import GroupChatModel from '../miscellaneous/GroupChatModel';
 import { Chat } from '../../types/interfaces';
 import io, { Socket } from 'socket.io-client';
-const ENDPOINT = 'https://biogram.onrender.com/';
+const ENDPOINT = 'http://localhost:5000/';
 let socket: Socket;
 
 function MyChat({ fetchAgain, bg, color }: any) {
@@ -138,7 +138,9 @@ function MyChat({ fetchAgain, bg, color }: any) {
                   {chat.lastMessage && (
                     <>
                       <span style={{ fontWeight: 'bold' }}>
-                        {chat.lastMessage?.sender.name?.split(' ')[0] + ': '}
+                        {chat.lastMessage.sender.id !== user.id
+                          ? chat.lastMessage?.sender.name?.split(' ')[0] + ': '
+                          : 'me: '}
                       </span>
                       {chat.lastMessage?.content?.length &&
                       chat.lastMessage?.content?.length > 18
