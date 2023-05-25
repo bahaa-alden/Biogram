@@ -45,7 +45,7 @@ const userSchema = new Schema<UserDoc, UserModel, any>(
     timestamps: true,
   }
 );
-
+userSchema.index({ name: 1 });
 //Document middleware
 
 userSchema.pre('save', async function (next) {
