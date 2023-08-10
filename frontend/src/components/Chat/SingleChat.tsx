@@ -25,7 +25,7 @@ import Lottie from 'lottie-react';
 import animationData from './../../assets/132124-hands-typing-on-keyboard.json';
 import { Form } from 'react-router-dom';
 
-const ENDPOINT = 'http://localhost:5000/';
+const ENDPOINT = 'https://biogram.onrender.com/';
 
 let socket: Socket, selectedChatCompare: any;
 function SingleChat({
