@@ -9,6 +9,7 @@ if (settings.NODE_ENV === 'production') {
   DB = settings.DB.DATABASE_LOCAL;
 }
 
+
 const ConnDB = () => {
   mongoose
     .connect(DB)

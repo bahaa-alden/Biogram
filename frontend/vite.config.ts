@@ -21,12 +21,12 @@ export default defineConfig({
       },
       devOptions: { enabled: true },
       manifest: {
-        name: 'React & MUI Dashboard',
-        short_name: 'Dashboard',
+        name: 'Biogram chat-app',
+        short_name: 'Biogram',
         start_url: '.',
         display: 'standalone',
         background_color: '#ffffff',
-        description: 'Dashboard app built with react',
+        description: 'Chat app built with react',
         theme_color: '#ffffff',
         icons: [
           {
