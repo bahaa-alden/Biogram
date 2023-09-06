@@ -8,7 +8,7 @@ import {
   createOne,
   getOne,
   deleteOne,
-  updateOne,
+  updateOne, 
 } from '@controllers/handlerFactory';
 
 export const accessChat = catchAsync(
