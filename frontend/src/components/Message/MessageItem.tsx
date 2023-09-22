@@ -91,7 +91,9 @@ function MessageItem({ message, messages, index }: any) {
       >
         {showSenderName(messages, message, index, user.id) &&
           selectedChat.isGroup && (
-            <span color={getBackgroundColor(message.sender.name)}>
+            <span
+              style={{ color: `${getBackgroundColor(message.sender.name)}` }}
+            >
               {message.sender.name}
             </span>
           )}

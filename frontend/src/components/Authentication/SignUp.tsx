@@ -91,8 +91,10 @@ function SignUp({ bg, bgS }: any) {
         const userInfo = res.data.data.user;
         storage.storeToken(res.data.token);
         setUser(userInfo);
-        navigate('/chats');
-        setLoading(false);
+        setTimeout(function () {
+          navigate('/chats');
+          setLoading(false);
+        }, 100);
       }
     } catch (err: any) {
       toast({
