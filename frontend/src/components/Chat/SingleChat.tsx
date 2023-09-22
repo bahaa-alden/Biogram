@@ -205,9 +205,9 @@ function SingleChat({
 
       setNewMessage('');
       const { data } = await (await axios(config)).data.data;
-      scrollToBottom();
-      setMessages([...messages, data]);
       socket.emit('new message', data);
+      setMessages([...messages, data]);
+      scrollToBottom();
 
       setFetchAgain(!fetchAgain);
     } catch (err: any) {
@@ -234,6 +234,7 @@ function SingleChat({
         setFetchNotificationsAgain(!fetchNotificationsAgain);
       } else {
         setMessages([...messages, newMessageReceived]);
+        scrollToBottom();
         setFetchAgain(!fetchAgain);
       }
     };

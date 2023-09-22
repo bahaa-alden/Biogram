@@ -2,8 +2,16 @@ import MessageItem from './MessageItem';
 import { Message } from '../../types/interfaces';
 import { Box, Text } from '@chakra-ui/react';
 import moment from 'moment';
-function MessageList({ messages, containerRef, handleScroll }: any) {
-  const groupedMessages = messages.reduce((groups: any, message: any) => {
+function MessageList({
+  messages,
+  containerRef,
+  handleScroll,
+}: {
+  messages: Message[];
+  containerRef: any;
+  handleScroll: any;
+}) {
+  const groupedMessages = messages.reduce((groups: any, message: Message) => {
     const date = moment(message.createdAt).format('YYYY-MM-DD');
     if (!groups[date]) {
       groups[date] = [];
@@ -38,17 +46,23 @@ function MessageList({ messages, containerRef, handleScroll }: any) {
               {moment(date).format('MMMM DD')}
             </Text>
           </Box>
-          {messages.map((message: Message, index: number) => {
-            return (
-              // <Slide direction='bottom'>
-              <MessageItem
-                key={index}
-                message={message}
-                messages={messages}
-                index={index}
-              />
-            );
-          })}
+          {messages
+            .filter(
+              (value: Message, index: number, self: Message[]) =>
+                index === self.findIndex((t) => t.id === value.id)
+            )
+            .sort((a: any, b: any) => (a.createdAt < b.createdAt ? -1 : 1))
+            .map((message: Message, index: number) => {
+              return (
+                // <Slide direction='bottom'>
+                <MessageItem
+                  key={index}
+                  message={message}
+                  messages={messages}
+                  index={index}
+                />
+              );
+            })}
         </div>
       ))}
     </Box>

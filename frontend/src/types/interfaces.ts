@@ -21,6 +21,7 @@ export interface Message {
   chat?: any;
   content?: string;
   sender: User;
+  createdAt: any;
 }
 
 export type props = {
