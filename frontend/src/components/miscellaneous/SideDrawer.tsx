@@ -62,6 +62,7 @@ function SideDrawer({
   const [search, setSearch] = useState('');
   const [searchResult, setSearchResult] = useState([]);
 
+  const [isClicked, setIsClicked] = useState<number>();
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -149,6 +150,7 @@ function SideDrawer({
         position: 'bottom-left',
       });
     }
+    setIsClicked(-1);
     setLoadingChat(false);
   };
 
@@ -307,9 +309,11 @@ function SideDrawer({
               <UserListItem
                 users={searchResult}
                 handleFunction={handleAccess}
+                loadingChat={loadingChat}
+                isClicked={isClicked}
+                setIsClicked={setIsClicked}
               />
             )}
-            {loadingChat && <Spinner ml="auto" display="flex" />}
           </DrawerBody>
           <DrawerFooter>
             <Button colorScheme="blue" mr={3} onClick={onClose}>

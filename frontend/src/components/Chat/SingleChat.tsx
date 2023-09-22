@@ -46,6 +46,8 @@ function SingleChat({
   const pageSize = 16;
   const [previousSelectedChat, setPreviousSelectedChat] = useState<Chat>();
   const [isEndOfMessages, setIsEndOfMessages] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const bgChat = useColorModeValue('rgb(0, 170, 199)', 'rgb(8, 34, 49)');
@@ -179,6 +181,7 @@ function SingleChat({
       socket.off('isTyping', typeListener);
       socket.off('stop typing', stopType);
       setIsTyping(false);
+      setIsSending(false);
     };
   }, [selectedChat]);
 
@@ -195,6 +198,7 @@ function SingleChat({
       return;
     }
     try {
+      setIsSending(true);
       const token = storage.getToken();
       const config: AxiosRequestConfig = {
         url: `/api/v1/chats/${selectedChat.id}/messages`,
@@ -220,6 +224,7 @@ function SingleChat({
         position: 'bottom',
       });
     }
+    setIsSending(false);
     scrollToBottom();
     socket.emit('stop typing', { chatId: selectedChat.id, userId: user.id });
   };
@@ -383,7 +388,7 @@ function SingleChat({
                 <IconButton
                   type="submit"
                   aria-label="send message"
-                  icon={<ArrowForwardIcon />}
+                  icon={isSending ? <Spinner /> : <ArrowForwardIcon />}
                   bg="rgb(10 85 135)"
                   borderRadius={'full'}
                   _hover={{}}
