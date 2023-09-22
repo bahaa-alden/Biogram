@@ -24,8 +24,7 @@ import io, { Socket } from 'socket.io-client';
 import Lottie from 'lottie-react';
 import animationData from './../../assets/132124-hands-typing-on-keyboard.json';
 import { Form } from 'react-router-dom';
-
-const ENDPOINT = 'https://biogram.onrender.com/';
+import { ENDPOINT } from '../../constants/endpoint';
 
 let socket: Socket, selectedChatCompare: any;
 function SingleChat({
@@ -150,18 +149,17 @@ function SingleChat({
   };
 
   useEffect(() => {
-    if (selectedChat !== previousSelectedChat && selectedChat.id !== '') {
-      setPage(1);
-      setIsEndOfMessages(false);
-      setMessages([]);
-      fetchMessages();
-      setPreviousSelectedChat(selectedChat);
-      setNewMessage('');
-      markAsRead(selectedChat.id);
-    }
+    setPage(1);
+    setIsEndOfMessages(false);
+    setMessages([]);
+    fetchMessages();
+    setPreviousSelectedChat(selectedChat);
+    setNewMessage('');
+    markAsRead(selectedChat.id);
+
     selectedChatCompare = selectedChat;
     // Listen for isTyping events from the server
-    socket.on('isTyping', ({ chatId, userId, userName }: any) => {
+    const typeListener = ({ chatId, userId, userName }: any) => {
       if (chatId === selectedChatCompare.id && userId !== user.id) {
         setIsTyping(true);
         setUserTyping(() => {
@@ -169,21 +167,18 @@ function SingleChat({
           return name;
         });
       }
-    });
-    socket.on('stop typing', ({ chatId, userId }: any) => {
+    };
+    const stopType = ({ chatId, userId }: any) => {
       if (chatId === selectedChatCompare.id && userId !== user.id) {
         setIsTyping(false);
       }
-    });
-
-    // Join the socket to the chat room
-    // socket.emit('joinChatRoom', selectedChatCompare.id);
-
-    // return () => {
-    //   // Leave the socket from the chat room
-    //   socket.emit('leaveChatRoom', selectedChatCompare.id);
-
-    // };
+    };
+    socket.on('isTyping', typeListener);
+    socket.on('stop typing', stopType);
+    return () => {
+      socket.off('isTyping');
+      socket.off('stop typing');
+    };
   }, [selectedChat]);
 
   const sendMessage = async (e: any) => {
@@ -229,7 +224,7 @@ function SingleChat({
   };
 
   useEffect(() => {
-    socket.on('message received', (newMessageReceived: any) => {
+    const listener = (newMessageReceived: any) => {
       if (
         !selectedChatCompare.id ||
         selectedChatCompare.id !== newMessageReceived.chat.id
@@ -240,7 +235,8 @@ function SingleChat({
         setMessages([...messages, newMessageReceived]);
         setFetchAgain(!fetchAgain);
       }
-    });
+    };
+    socket.on('message received', listener);
     socket.on('group rename', () => {
       setFetchAgain(!fetchAgain);
     });
@@ -251,6 +247,19 @@ function SingleChat({
       setFetchAgain(!fetchAgain);
       setFetchNotificationsAgain(!fetchNotificationsAgain);
     });
+    return () => {
+      socket.off('message received', listener);
+      socket.off('group rename', () => {
+        setFetchAgain(!fetchAgain);
+      });
+      socket.off('group remove', () => {
+        setFetchAgain(!fetchAgain);
+      });
+      socket.off('group add', () => {
+        setFetchAgain(!fetchAgain);
+        setFetchNotificationsAgain(!fetchNotificationsAgain);
+      });
+    };
   });
   return (
     <Fragment>

@@ -15,7 +15,7 @@ const server = app.listen(port, () =>
 
 const io = new Server(server, {
   pingTimeout: 60000,
-  cors: { origin: 'https://biogram.onrender.com' },
+  cors: { origin: 'https://biogram.onrender.com/' },
 });
 
 io.on('connection', (socket) => {
@@ -30,10 +30,10 @@ io.on('connection', (socket) => {
 
   socket.on('isTyping', ({ chatId, userId, userName }) => {
     // Broadcast the isTyping event to all other clients in the same chat room
-    socket.broadcast.in(chatId).emit('isTyping', { chatId, userId, userName });
+    socket.to(chatId).emit('isTyping', { chatId, userId, userName });
   });
   socket.on('stop typing', ({ chatId, userId }) => {
-    socket.broadcast.in(chatId).emit('stop typing', { chatId, userId });
+    socket.to(chatId).emit('stop typing', { chatId, userId });
   });
   socket.on('new message', (newMessageReceived) => {
     let { chat } = newMessageReceived;

@@ -39,12 +39,7 @@ const ChatProvider = ({ children }: props) => {
   };
 
   useEffect(() => {
-    fetchUserData()?.then((res) => {
-      let userD: any = res;
-      if (userD) {
-        navigate('/chats');
-      }
-    });
+    fetchUserData();
     setTimeout(function () {
       setLo(false);
     }, 1000);

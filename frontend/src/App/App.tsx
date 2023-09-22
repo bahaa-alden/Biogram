@@ -7,8 +7,9 @@ import ChatPage from '../Pages/ChatPage';
 import HomePage from '../Pages/HomePage';
 import Styles from './App.module.css';
 import { chatState } from '../Context/ChatProvider';
-import ProtectedRoutes from '../utils/ProtectedRoutes';
+import AuthenticatedRoute from '../utils/AuthenticatedRoute';
 import { Button, useColorMode, useColorModeValue } from '@chakra-ui/react';
+import NotAuthenticatedRoute from '../utils/NotAuthenticatedRoute';
 
 function App() {
   const bg = useColorModeValue('rgb(26, 193, 222)', 'rgb(1, 12, 20)');
@@ -16,9 +17,13 @@ function App() {
   return (
     <div className={Styles.App} style={{ background: bg }}>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route element={<ProtectedRoutes />}>
-          <Route path="/chats" element={<ChatPage />} />
+        <Route path="/">
+          <Route element={<NotAuthenticatedRoute />}>
+            <Route path="" element={<HomePage />} />
+          </Route>
+          <Route element={<AuthenticatedRoute />}>
+            <Route path="chats" element={<ChatPage />} />
+          </Route>
         </Route>
       </Routes>
     </div>

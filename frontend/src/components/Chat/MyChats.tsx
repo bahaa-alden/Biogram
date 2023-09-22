@@ -17,7 +17,7 @@ import { getSender, getSenderFull } from '../../config/chatLogics';
 import GroupChatModel from '../miscellaneous/GroupChatModel';
 import { Chat } from '../../types/interfaces';
 import io, { Socket } from 'socket.io-client';
-const ENDPOINT = 'https://biogram.onrender.com/';
+import { ENDPOINT } from '../../constants/endpoint';
 let socket: Socket;
 
 function MyChat({ fetchAgain, bg, color }: any) {
