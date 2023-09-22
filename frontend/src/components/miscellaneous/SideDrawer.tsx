@@ -134,9 +134,12 @@ function SideDrawer({
 
       const { data } = await (await axios(config)).data;
 
+      if (data.id === selectedChat.id) return;
       if (!chats.find((c: any) => c.id === data.id)) setChats([data, ...chats]);
-
-      setSelectedChat(data);
+      setSelectedChat({ users: [], groupAdmin: {} });
+      setTimeout(function () {
+        setSelectedChat(data);
+      }, 100);
       onClose();
       setSearchResult([]);
       setSearch('');
