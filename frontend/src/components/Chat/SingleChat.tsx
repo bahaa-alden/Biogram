@@ -176,8 +176,9 @@ function SingleChat({
     socket.on('isTyping', typeListener);
     socket.on('stop typing', stopType);
     return () => {
-      socket.off('isTyping');
-      socket.off('stop typing');
+      socket.off('isTyping', typeListener);
+      socket.off('stop typing', stopType);
+      setIsTyping(false);
     };
   }, [selectedChat]);
 
