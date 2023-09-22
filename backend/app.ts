@@ -77,19 +77,7 @@ app.use((req: any, res: Response, next: NextFunction) => {
 app.use(routes);
 
 //For Views
-if (settings.NODE_ENV === 'production') {
-  app.get('/health', async (req, res, next) => {
-    res.status(200).send({ status: 'success' });
-  });
 
-  app.get('*', (req, res, next) => {
-    res.sendFile('index.html');
-  });
-} else {
-  app.get('/', (req, res, next) => {
-    res.send('API work successfully');
-  });
-}
 
 //for other routes
 app.all('*', notFound);
