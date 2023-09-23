@@ -207,11 +207,11 @@ function SingleChat({
         data: { content: newMessage },
       };
 
-      setNewMessage('');
       const { data } = await (await axios(config)).data.data;
       socket.emit('new message', data);
       setMessages([...messages, data]);
       scrollToBottom();
+      setNewMessage('');
 
       setFetchAgain(!fetchAgain);
     } catch (err: any) {
