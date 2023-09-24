@@ -187,6 +187,7 @@ function SingleChat({
 
   const sendMessage = async (e: any) => {
     e.preventDefault();
+    if (isSending) return;
     if (!newMessage) {
       toast({
         title: 'Please write a message!',
@@ -209,9 +210,10 @@ function SingleChat({
 
       const { data } = await (await axios(config)).data.data;
       socket.emit('new message', data);
+      setNewMessage('');
       setMessages([...messages, data]);
       scrollToBottom();
-      setNewMessage('');
+      setIsSending(false);
 
       setFetchAgain(!fetchAgain);
     } catch (err: any) {
