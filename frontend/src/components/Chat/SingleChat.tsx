@@ -382,6 +382,7 @@ function SingleChat({
                   color={'white'}
                   placeholder="Enter a message"
                   onChange={(e) => {
+                    if (isSending) return;
                     setNewMessage(e.target.value);
                   }}
                   value={newMessage}
