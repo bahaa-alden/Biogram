@@ -44,13 +44,16 @@ function UpdateGroupChatModel({
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [renameLoading, setRenameLoading] = useState(false);
-
+  const [isClicked, setIsClicked] = useState<number>();
+  const [loadingChat, setLoadingChat] = useState(false);
   const toast = useToast();
   const handleDelete = (delUser: User) => {
     setSelectedUsers(selectedUsers.filter((u) => u.id !== delUser.id));
   };
 
   const handleAddUser = async (userInfo: User) => {
+    setLoadingChat(true);
+
     if (selectedChat.users.includes(userInfo)) {
       toast({
         title: 'User already in group',
@@ -60,10 +63,13 @@ function UpdateGroupChatModel({
         isClosable: true,
         position: 'top',
       });
+      setLoadingChat(false);
+      setIsClicked(-1);
       return;
     }
     try {
       setLoading(true);
+
       const token = storage.getToken();
       const config: AxiosRequestConfig = {
         url: `/api/v1/chats/groupAdd`,
@@ -84,6 +90,7 @@ function UpdateGroupChatModel({
           isClosable: true,
           position: 'top',
         });
+
         setSelectedChat({ users: [], groupAdmin: {} });
         setTimeout(function () {
           setSelectedChat(data);
@@ -101,6 +108,8 @@ function UpdateGroupChatModel({
         position: 'top',
       });
     }
+    setLoadingChat(false);
+    setIsClicked(-1);
     setSearchResult([]);
     setSearch('');
     setLoading(false);
@@ -290,7 +299,7 @@ function UpdateGroupChatModel({
                 value={groupName}
                 placeholder="Chat Name"
                 mb="3"
-                onChange={(e) => setGroupName(e.target.value)}
+                onChange={(e) => setGroupName(e.target.value.trim())}
               />
               <Button
                 variant="solid"
@@ -309,7 +318,7 @@ function UpdateGroupChatModel({
                     value={search}
                     placeholder="Add Users To Group"
                     mb={1}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => setSearch(e.target.value.trim())}
                   />
                 </FormControl>
                 {loading ? (
@@ -319,6 +328,9 @@ function UpdateGroupChatModel({
                     <UserListItem
                       users={searchResult.slice(0, 4)}
                       handleFunction={handleAddUser}
+                      loadingChat={loadingChat}
+                      isClicked={isClicked}
+                      setIsClicked={setIsClicked}
                     />
                   </Stack>
                 )}

@@ -35,11 +35,19 @@ function GroupChatModel({ children, socket }: any) {
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [searchResult, setSearchResult] = useState([]);
+  const [isClicked, setIsClicked] = useState<number>();
+  const [loadingChat, setLoadingChat] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const handleSearch = async (query: string) => {
-    setSearch(query);
-    if (!query) return;
+  useEffect(() => {
+    const h = setTimeout(function () {
+      handleSearch();
+    }, 100);
+    return () => clearTimeout(h);
+  }, [search]);
+  const handleSearch = async () => {
+    if (!search) return;
     try {
       setLoading(true);
       const token = storage.getToken();
@@ -60,11 +68,15 @@ function GroupChatModel({ children, socket }: any) {
         position: 'top',
       });
     }
+    
     setLoading(false);
   };
   const handleGroup = (userInfo: User) => {
+    setLoadingChat(true);
     if (!selectedUsers.includes(userInfo)) {
       setSelectedUsers([userInfo, ...selectedUsers]);
+      setIsClicked(-1);
+      setLoadingChat(false);
       return;
     }
     toast({
@@ -75,6 +87,8 @@ function GroupChatModel({ children, socket }: any) {
       isClosable: true,
       position: 'top',
     });
+    setIsClicked(-1);
+    setLoadingChat(false);
   };
 
   const handleDelete = (delUser: User) => {
@@ -175,14 +189,15 @@ function GroupChatModel({ children, socket }: any) {
               <Input
                 placeholder="Chat Name"
                 mb="3"
-                onChange={(e) => setGroupName(e.target.value)}
+                onChange={(e) => setGroupName(e.target.value.trim())}
               />
             </FormControl>
             <FormControl>
               <Input
                 placeholder="Add Users eg: Bahaa, Ali, Islam"
                 mb={1}
-                onChange={(e) => handleSearch(e.target.value)}
+                value={search}
+                onChange={(e) => setSearch(e.target.value.trim())}
               />
             </FormControl>
 
@@ -200,6 +215,9 @@ function GroupChatModel({ children, socket }: any) {
                 <UserListItem
                   users={searchResult.slice(0, 4)}
                   handleFunction={handleGroup}
+                  loadingChat={loadingChat}
+                  isClicked={isClicked}
+                  setIsClicked={setIsClicked}
                 />
               </Stack>
             )}

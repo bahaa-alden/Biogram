@@ -383,7 +383,7 @@ function SingleChat({
                   placeholder="Enter a message"
                   onChange={(e) => {
                     if (isSending) return;
-                    setNewMessage(e.target.value);
+                    setNewMessage(e.target.value.trim());
                   }}
                   value={newMessage}
                   border="none"

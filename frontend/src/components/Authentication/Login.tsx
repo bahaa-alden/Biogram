@@ -94,7 +94,7 @@ function Login({ bg, bgS }: any) {
             onChange={(e) => {
               dispatch({
                 type: InputActionKind.CHANGE_EMAIL,
-                payload: e.target.value,
+                payload: e.target.value.trim(),
               });
             }}
           />
@@ -107,7 +107,7 @@ function Login({ bg, bgS }: any) {
             onChange={(e) => {
               dispatch({
                 type: InputActionKind.CHANGE_PASSWORD,
-                payload: e.target.value,
+                payload: e.target.value.trim(),
               });
             }}
             type="password"
