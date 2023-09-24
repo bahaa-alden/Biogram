@@ -52,7 +52,7 @@ function GroupChatModel({ children, socket }: any) {
       setLoading(true);
       const token = storage.getToken();
       const config: AxiosRequestConfig = {
-        url: `/api/v1/users?search=${search}`,
+        url: `/api/v1/users?search=${search.trim()}`,
         headers: { Authorization: `Bearer ${token}` },
         method: 'GET',
       };
@@ -68,7 +68,7 @@ function GroupChatModel({ children, socket }: any) {
         position: 'top',
       });
     }
-    
+
     setLoading(false);
   };
   const handleGroup = (userInfo: User) => {
@@ -122,7 +122,7 @@ function GroupChatModel({ children, socket }: any) {
         url: `/api/v1/chats/group`,
         headers: { Authorization: `Bearer ${token}` },
         method: 'POST',
-        data: { users: selectedUsers.map((u) => u.id), name: groupName },
+        data: { users: selectedUsers.map((u) => u.id), name: groupName.trim() },
       };
       const res = await (await axios(config)).data;
       const { data } = res;
@@ -189,7 +189,7 @@ function GroupChatModel({ children, socket }: any) {
               <Input
                 placeholder="Chat Name"
                 mb="3"
-                onChange={(e) => setGroupName(e.target.value.trim())}
+                onChange={(e) => setGroupName(e.target.value)}
               />
             </FormControl>
             <FormControl>
@@ -197,7 +197,7 @@ function GroupChatModel({ children, socket }: any) {
                 placeholder="Add Users eg: Bahaa, Ali, Islam"
                 mb={1}
                 value={search}
-                onChange={(e) => setSearch(e.target.value.trim())}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </FormControl>
 

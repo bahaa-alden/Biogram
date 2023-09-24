@@ -106,7 +106,7 @@ function SideDrawer({
       const token = storage.getToken();
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await (
-        await axios.get(`/api/v1/users?search=${search}`, config)
+        await axios.get(`/api/v1/users?search=${search.trim()}`, config)
       ).data.data;
       setSearchResult(data);
     } catch (err: any) {
@@ -302,7 +302,7 @@ function SideDrawer({
                   placeholder="Search by name or email"
                   mr="2"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value.trim())}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
               </FormControl>
             </Box>

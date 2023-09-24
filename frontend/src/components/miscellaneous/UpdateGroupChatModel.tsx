@@ -121,7 +121,7 @@ function UpdateGroupChatModel({
       setLoading(true);
       const token = storage.getToken();
       const config: AxiosRequestConfig = {
-        url: `/api/v1/users?search=${search}`,
+        url: `/api/v1/users?search=${search.trim()}`,
         headers: { Authorization: `Bearer ${token}` },
         method: 'GET',
       };
@@ -166,7 +166,7 @@ function UpdateGroupChatModel({
         url: `/api/v1/chats/groupRename`,
         headers: { Authorization: `Bearer ${token}` },
         method: 'PATCH',
-        data: { chatId: selectedChat.id, name: groupName },
+        data: { chatId: selectedChat.id, name: groupName.trim() },
       };
       const res = await (await axios(config)).data;
       const { data } = res.data;
@@ -299,7 +299,7 @@ function UpdateGroupChatModel({
                 value={groupName}
                 placeholder="Chat Name"
                 mb="3"
-                onChange={(e) => setGroupName(e.target.value.trim())}
+                onChange={(e) => setGroupName(e.target.value)}
               />
               <Button
                 variant="solid"
@@ -318,7 +318,7 @@ function UpdateGroupChatModel({
                     value={search}
                     placeholder="Add Users To Group"
                     mb={1}
-                    onChange={(e) => setSearch(e.target.value.trim())}
+                    onChange={(e) => setSearch(e.target.value)}
                   />
                 </FormControl>
                 {loading ? (

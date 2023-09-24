@@ -205,7 +205,7 @@ function SingleChat({
         url: `/api/v1/chats/${selectedChat.id}/messages`,
         headers: { Authorization: `Bearer ${token}` },
         method: 'POST',
-        data: { content: newMessage },
+        data: { content: newMessage.trim() },
       };
 
       const { data } = await (await axios(config)).data.data;
@@ -383,7 +383,7 @@ function SingleChat({
                   placeholder="Enter a message"
                   onChange={(e) => {
                     if (isSending) return;
-                    setNewMessage(e.target.value.trim());
+                    setNewMessage(e.target.value);
                   }}
                   value={newMessage}
                   border="none"

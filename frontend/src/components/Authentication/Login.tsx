@@ -47,8 +47,8 @@ function Login({ bg, bgS }: any) {
         method: 'POST',
         url: '/api/v1/users/login',
         data: {
-          email: state.email,
-          password: state.password,
+          email: state.email.trim(),
+          password: state.password.trim(),
         },
       });
 
@@ -94,7 +94,7 @@ function Login({ bg, bgS }: any) {
             onChange={(e) => {
               dispatch({
                 type: InputActionKind.CHANGE_EMAIL,
-                payload: e.target.value.trim(),
+                payload: e.target.value,
               });
             }}
           />
@@ -107,7 +107,7 @@ function Login({ bg, bgS }: any) {
             onChange={(e) => {
               dispatch({
                 type: InputActionKind.CHANGE_PASSWORD,
-                payload: e.target.value.trim(),
+                payload: e.target.value,
               });
             }}
             type="password"

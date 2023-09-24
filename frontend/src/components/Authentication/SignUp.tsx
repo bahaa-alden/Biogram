@@ -47,7 +47,7 @@ function SignUp({ bg, bgS }: any) {
     e.preventDefault();
     try {
       setLoading(true);
-      if (state.password !== state.passwordConfirm) {
+      if (state.password.trim() !== state.passwordConfirm.trim()) {
         toast({
           title: 'Passwords are not the same',
           status: 'error',
@@ -61,9 +61,9 @@ function SignUp({ bg, bgS }: any) {
         method: 'POST',
         url: '/api/v1/users/signup',
         data: {
-          email: state.email,
-          name: state.name,
-          password: state.password,
+          email: state.email.trim(),
+          name: state.name.trim(),
+          password: state.password.trim(),
         },
       });
       const token = res.data.token;
@@ -119,7 +119,7 @@ function SignUp({ bg, bgS }: any) {
             onChange={(e) => {
               dispatch({
                 type: InputActionKind.CHANGE_NAME,
-                payload: e.target.value.trim(),
+                payload: e.target.value,
               });
             }}
           />
@@ -132,7 +132,7 @@ function SignUp({ bg, bgS }: any) {
             onChange={(e) => {
               dispatch({
                 type: InputActionKind.CHANGE_EMAIL,
-                payload: e.target.value.trim(),
+                payload: e.target.value,
               });
             }}
           />
@@ -144,7 +144,7 @@ function SignUp({ bg, bgS }: any) {
             onChange={(e) => {
               dispatch({
                 type: InputActionKind.CHANGE_PASSWORD,
-                payload: e.target.value.trim(),
+                payload: e.target.value,
               });
             }}
             type="password"
@@ -158,7 +158,7 @@ function SignUp({ bg, bgS }: any) {
             onChange={(e) => {
               dispatch({
                 type: InputActionKind.CHANGE_PASSWORD_CONFIRM,
-                payload: e.target.value.trim(),
+                payload: e.target.value,
               });
             }}
           />
