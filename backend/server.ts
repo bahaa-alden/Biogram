@@ -15,7 +15,7 @@ const server = app.listen(port, () =>
 
 const io = new Server(server, {
   pingTimeout: 60000,
-  cors: {origin:'https://biogram.onrender.com'}
+  cors: { origin: 'https://chatapp-production-5678.up.railway.app' },
 });
 
 io.on('connection', (socket) => {
