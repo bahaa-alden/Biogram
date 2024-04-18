@@ -37,15 +37,15 @@ ChatApp is a real-time messaging application built with Node.js, TypeScript, Soc
 2. **Install Backend Dependencies:**
 
 ```bash
-        cd chatapp/backend
-        yarn install
+cd chatapp/backend
+yarn install
 ```
 
 3. **Install Frontend Dependencies:**
 
 ```bash
-    cd chatapp/backend
-    yarn install
+cd chatapp/backend
+yarn install
 ```
 
 4. **Set Up Environment Variables:**
@@ -66,7 +66,7 @@ ChatApp is a real-time messaging application built with Node.js, TypeScript, Soc
 5.**Start the Server:**
 
 ```bash
- yarn start:dev
+yarn start:dev
 ```
 
 6.**Start the Client:**
@@ -94,7 +94,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 For inquiries or support, please contact [your_email@example.com](mailto:your_email@example.com).
-
-```
-
-```
