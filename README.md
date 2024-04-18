@@ -50,15 +50,18 @@ ChatApp is a real-time messaging application built with Node.js, TypeScript, Soc
 
 4. **Set Up Environment Variables:**
    Create a `.env` file in the root directory and define the following variables:
-   NODE_ENV=production
-   PORT=5000
-   PASSWORD=BZLDZNrejlgxh6mn
-   DATABASE_LOCAL=mongodb://localhost:27017/chatapp
-   DATABASE=mongodb+srv://bahaa:<PASSWORD>@cluster0.jpohgpa.mongodb.net/chatapp
-   JWT_SECRET_KEY=my-strong-secrect-and-my-ultimate-secrect
-   JWT_EXPIRES_IN=90d
-   IMGUR_CLIENT_ID=7a6711aefa7ffc7
-   IMGUR_CLIENT_SECRET=bab392bbe4976d8cba075e63dcd1c704be6bbd86
+
+```dotenv
+ NODE_ENV=
+ PORT=5000
+ PASSWORD=
+ DATABASE_LOCAL=mongodb://localhost:27017/chatapp
+ DATABASE=
+ JWT_SECRET_KEY=
+ JWT_EXPIRES_IN=90d
+ IMGUR_CLIENT_ID=
+ IMGUR_CLIENT_SECRET=
+```
 
 5.**Start the Server:**
 
