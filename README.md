@@ -93,4 +93,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-For inquiries or support, please contact [samerabood195@gmail.com](mailto:samerabood195@gmail.com).
+For inquiries or support, please contact [your_email@example.com](mailto:your_email@example.com).
