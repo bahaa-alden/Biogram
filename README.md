@@ -1,6 +1,6 @@
-# ChatApp
+# Biogram
 
-ChatApp is a real-time messaging application built with Node.js, TypeScript, Socket.IO, Express.js, React.js, Chakra UI, and MongoDB. It enables users to engage in instant messaging with others in real-time, fostering seamless communication and collaboration.
+Biogram is a real-time messaging application built with Node.js, TypeScript, Socket.IO, Express.js, React.js, Chakra UI, and MongoDB. It enables users to engage in instant messaging with others in real-time, fostering seamless communication and collaboration.
 
 ## Features
 
