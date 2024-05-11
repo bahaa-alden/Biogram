@@ -1,1 +1,1 @@
-export const ENDPOINT = 'https://chatapp-production-5678.up.railway.app';
+export const ENDPOINT = 'http://localhost:5000/';

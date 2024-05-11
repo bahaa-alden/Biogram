@@ -1,10 +1,4 @@
-﻿import express, {
-  NextFunction,
-  Response,
-  Request,
-  json,
-  urlencoded,
-} from 'express';
+﻿import express, { NextFunction, Response, json, urlencoded } from 'express';
 import path from 'path';
 import morgan from 'morgan';
 import helmet from 'helmet';
@@ -16,8 +10,6 @@ import compression from 'compression';
 // import xss from 'xss-clean';
 import { globalErrorHandler, notFound } from '@middlewares/error.middleware';
 // import csurf from 'csurf';
-import AppError from '@utils/appError';
-import userRouter from '@routes/user.routes';
 import { settings } from './config/settings';
 import routes from '@routes/index.routes';
 import JWTStrategy from '@middlewares/passport.config';
@@ -77,7 +69,6 @@ app.use((req: any, res: Response, next: NextFunction) => {
 app.use(routes);
 
 //For Views
-
 
 //for other routes
 app.all('*', notFound);
