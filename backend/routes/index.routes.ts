@@ -1,12 +1,25 @@
-import { Response, Router } from 'express';
+import { NextFunction, Response, Router } from 'express';
 import userRouter from '@routes/user.routes';
-import AppError from '@utils/appError';
 import chatRouter from '@routes/chat.routes';
 import messageRouter from '@routes/message.routes';
 import notificationRouter from '@routes/notification.routes';
 import { settings } from '@config/settings';
 
 const router = Router();
+
+router.get(
+  '/create-store/auth/woo/callback',
+  async (req, res: Response, next: NextFunction) => {
+    const { key_id, user_id, consumer_key, consumer_secret } = req.body;
+    return res.json({
+      success: true,
+      key_id,
+      user_id,
+      consumer_key,
+      consumer_secret,
+    });
+  }
+);
 
 router.use('/api/v1/users', userRouter);
 router.use('/api/v1/chats', chatRouter);
