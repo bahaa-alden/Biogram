@@ -7,7 +7,7 @@ import { settings } from '@config/settings';
 
 const router = Router();
 
-router.get(
+router.post(
   '/create-store/auth/woo/callback',
   async (req, res: Response, next: NextFunction) => {
     const { key_id, user_id, consumer_key, consumer_secret } = req.body;
