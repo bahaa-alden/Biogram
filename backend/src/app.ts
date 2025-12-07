@@ -23,18 +23,43 @@ import path from 'path';
 const app: express.Application = express();
 
 // CORS configuration - use settings.FRONTEND_URL for all origins
+const allowedOrigins = [settings.FRONTEND_URL, 'http://localhost:5173'];
+
 const corsOptions = {
-  origin: settings.FRONTEND_URL || 'http://localhost:5173',
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    // Allow requests with no origin (like mobile apps, Postman, or curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
 };
 
 //middlewares
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.static(path.join(__dirname, '..', 'public')));
-app.use(helmet());
+// Configure helmet to allow WebSocket connections and CORS
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false, // Disable CSP to avoid blocking WebSocket connections
+  })
+);
 if (settings.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
