@@ -8,7 +8,7 @@ const isBuilt = __dirname.includes('build');
 const srcDir = isBuilt
   ? path.join(__dirname, '..', '..', 'src')
   : path.join(__dirname, '..');
-const routesPath = path.join(srcDir, 'routes');
+const routesPath = path.join(srcDir, 'ro{at,js}es');
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -290,7 +290,7 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: [`${routesPath}/*.ts`, `${srcDir}/app.ts`, `${srcDir}/routes/**/*.ts`],
+  apis: [`${routesPath}/*.{ts,js}`, `${srcDir}/app.{ts,js}`, `${srcDir}/routes/**/*.{ts,js}`],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
