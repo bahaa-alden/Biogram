@@ -22,26 +22,9 @@ import path from 'path';
 
 const app: express.Application = express();
 
-// CORS configuration - use settings.FRONTEND_URL for all origins
-const allowedOrigins = [settings.FRONTEND_URL, 'http://localhost:5173'];
-
+// CORS configuration - allow all origins
 const corsOptions = {
-  origin: (
-    origin: string | undefined,
-    callback: (err: Error | null, allow?: boolean) => void
-  ) => {
-    // Allow requests with no origin (like mobile apps, Postman, or curl)
-    if (!origin) {
-      return callback(null, true);
-    }
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -58,6 +41,9 @@ app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
     contentSecurityPolicy: false, // Disable CSP to avoid blocking WebSocket connections
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    xssFilter: false,
   })
 );
 if (settings.NODE_ENV === 'development') {
