@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import AppError from '../utils/appError';
 const handleCastErrorDB = (err: any) => {
   const message = `Invalid ${err.path}: ${err.value}`;
@@ -19,6 +19,7 @@ const handleValidatorErrorDB = (err: any) => {
   const message = `Invalid input data. ${Object.values(err.errors)
     .map((el: any) => el.message)
     .join('. ')}`;
+
   return new AppError(400, message);
 };
 
@@ -92,4 +93,4 @@ const notFound = (req: Request, res: Response, next: NextFunction) => {
   ); //skip all middleware and go to the errors handler
 };
 
-export { notFound, globalErrorHandler };
+export { globalErrorHandler, notFound };
