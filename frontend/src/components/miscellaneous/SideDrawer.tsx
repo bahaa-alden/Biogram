@@ -30,6 +30,7 @@ import {
   useToast,
   VStack
 } from '@chakra-ui/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Fragment, useEffect, useState } from 'react';
 
 import {
@@ -67,11 +68,10 @@ function SideDrawer({
     user,
     selectedChat,
     setSelectedChat,
-    setChats,
-    chats,
     notification,
     setNotification,
   } = chatState();
+  const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
   const [searchResult, setSearchResult] = useState<User[]>([]);
@@ -136,12 +136,17 @@ function SideDrawer({
       const response = await chatService.createChat({ userId: userInfo.id });
       const data = response.data.data;
 
-      if (data.id === selectedChat?.id) return;
-      if (!chats.find((c: any) => c.id === data.id)) setChats([data, ...chats]);
-      setSelectedChat({ users: [], groupAdmin: {} });
-      setTimeout(function () {
-        setSelectedChat(data);
-      }, 100);
+      if (data.id === selectedChat?.id) {
+        setLoadingChat(false);
+        return;
+      }
+
+      // Invalidate and refetch chats list
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+      
+      // Set the selected chat directly (no intermediate empty state)
+      setSelectedChat(data);
+      
       onClose();
       setSearchResult([]);
       setSearch('');
@@ -295,20 +300,14 @@ function SideDrawer({
                         notif.message.chat &&
                         notif.message.chat.id !== selectedChat?.id
                       ) {
-                        setSelectedChat({ users: [], groupAdmin: {} });
-                        setTimeout(function () {
-                          if (notif.message?.chat) {
-                            setSelectedChat(notif.message.chat);
-                          }
-                        }, 100);
+                        if (notif.message?.chat) {
+                          setSelectedChat(notif.message.chat);
+                        }
                       } else {
                         if (notif.chat && notif.chat.id !== selectedChat?.id) {
-                          setSelectedChat({ users: [], groupAdmin: {} });
-                          setTimeout(function () {
-                            if (notif.chat) {
-                              setSelectedChat(notif.chat);
-                            }
-                          }, 100);
+                          if (notif.chat) {
+                            setSelectedChat(notif.chat);
+                          }
                         }
                       }
                     }}
