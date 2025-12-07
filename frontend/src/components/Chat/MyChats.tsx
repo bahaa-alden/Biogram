@@ -1,23 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
-import { chatState } from '../../Context/ChatProvider';
+import { AddIcon } from '@chakra-ui/icons';
 import {
+  Avatar,
   Box,
   Button,
+  IconButton,
   Stack,
   Text,
-  useColorModeValue,
-  Avatar,
-  Skeleton,
-  SkeletonCircle,
-  IconButton,
+  useColorModeValue
 } from '@chakra-ui/react';
-import { AddIcon } from '@chakra-ui/icons';
+import { useEffect, useRef } from 'react';
 import { getSender, getSenderFull } from '../../config/chatLogics';
-import GroupChatModel from '../miscellaneous/GroupChatModel';
-import { Chat } from '../../types/interfaces';
+import { chatState } from '../../Context/ChatProvider';
 import { useChats } from '../../hooks/queries/useChats';
 import { useSocket } from '../../hooks/useSocket';
 import { queryClient } from '../../providers/QueryProvider';
+import { Chat } from '../../types/interfaces';
+import GroupChatModel from '../miscellaneous/GroupChatModel';
 import { ChatListSkeleton } from './ChatListSkeleton';
 
 interface MyChatProps {
@@ -98,7 +96,7 @@ function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
   }, [socket]);
 
   const handleChatClick = (chat: Chat) => {
-    if (chat.id !== selectedChat.id) {
+    if (chat.id !== selectedChat?.id) {
       setSelectedChat({ users: [], groupAdmin: {} });
       setTimeout(() => {
         setSelectedChat(chat);
@@ -111,7 +109,7 @@ function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
       ref={containerRef}
       bg={boxBg}
       display={display || {
-        base: selectedChat.users.length ? 'none' : 'flex',
+        base: selectedChat?.users?.length ? 'none' : 'flex',
         md: 'flex',
       }}
       flexDir="column"
@@ -211,7 +209,7 @@ function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
         ) : chats && chats.length > 0 ? (
           <Stack spacing={{ base: 1.5, md: 1.5, lg: 2 }}>
             {chats.map((chat: Chat) => {
-              const isSelected = selectedChat.id === chat.id;
+              const isSelected = selectedChat?.id === chat.id;
               const sender = getSenderFull(user, chat.users || []);
               const chatName = !chat.isGroup ? getSender(user, chat.users || []) : (chat.name || 'Unnamed Group');
 

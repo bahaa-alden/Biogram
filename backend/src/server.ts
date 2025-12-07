@@ -28,7 +28,6 @@ const io = new Server(server, {
   transports: ['polling', 'websocket'],
   allowEIO3: true,
   allowUpgrades: true,
-  path: '/socket.io/',
 });
 
 io.on('connection', (socket) => {

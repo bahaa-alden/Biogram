@@ -40,10 +40,12 @@ import {
   SearchIcon,
   SunIcon,
 } from '@chakra-ui/icons';
-import axios, { AxiosRequestConfig } from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { getSender } from '../../config/chatLogics';
 import { chatState } from '../../Context/ChatProvider';
+import { chatService } from '../../services/api/chat.service';
+import { notificationService } from '../../services/api/notification.service';
+import { userService } from '../../services/api/user.service';
 import { Notification, User } from '../../types/interfaces';
 import { storage } from '../../utils/storage';
 import UserListItem from '../UserAvatar/UserListItems';
@@ -72,7 +74,7 @@ function SideDrawer({
   } = chatState();
 
   const [search, setSearch] = useState('');
-  const [searchResult, setSearchResult] = useState([]);
+  const [searchResult, setSearchResult] = useState<User[]>([]);
 
   const [isClicked, setIsClicked] = useState<number>();
   const [loading, setLoading] = useState(false);
@@ -84,14 +86,10 @@ function SideDrawer({
   const { colorMode, toggleColorMode } = useColorMode();
 
   const fetchNotifications = async () => {
+    if (!user?.id) return;
     try {
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/users/${user.id}/notifications?read=false&limit=10`,
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'GET',
-      };
-      const { data } = await (await axios(config)).data.data;
+      const response = await notificationService.getNotifications(user.id, { read: false, limit: 10 });
+      const data = response.data.data;
       setNotification(data);
     } catch (error) {}
   };
@@ -115,14 +113,13 @@ function SideDrawer({
 
     try {
       setLoading(true);
-      const token = storage.getToken();
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get(`/api/v1/users?search=${search.trim()}`, config);
-      const { data } = response.data.data;
+      const response = await userService.getUsers({ search: search.trim() });
+      const data = response.data.data;
       setSearchResult(data);
     } catch (err: any) {
       toast({
         title: 'Failed to load the search result',
+        description: err.response?.data?.message || 'An error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -133,19 +130,13 @@ function SideDrawer({
   };
 
   const handleAccess = async (userInfo: User) => {
+    if (!userInfo?.id) return;
     try {
       setLoadingChat(true);
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: '/api/v1/chats',
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'POST',
-        data: { userId: userInfo.id },
-      };
+      const response = await chatService.createChat({ userId: userInfo.id });
+      const data = response.data.data;
 
-      const { data } = await (await axios(config)).data;
-
-      if (data.id === selectedChat.id) return;
+      if (data.id === selectedChat?.id) return;
       if (!chats.find((c: any) => c.id === data.id)) setChats([data, ...chats]);
       setSelectedChat({ users: [], groupAdmin: {} });
       setTimeout(function () {
@@ -157,7 +148,7 @@ function SideDrawer({
     } catch (err: any) {
       toast({
         title: 'Error fetching the chat',
-        description: err.response.data.message,
+        description: err.response?.data?.message || 'An error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -302,7 +293,7 @@ function SideDrawer({
                       if (
                         notif.message &&
                         notif.message.chat &&
-                        notif.message.chat.id !== selectedChat.id
+                        notif.message.chat.id !== selectedChat?.id
                       ) {
                         setSelectedChat({ users: [], groupAdmin: {} });
                         setTimeout(function () {
@@ -311,7 +302,7 @@ function SideDrawer({
                           }
                         }, 100);
                       } else {
-                        if (notif.chat && notif.chat.id !== selectedChat.id) {
+                        if (notif.chat && notif.chat.id !== selectedChat?.id) {
                           setSelectedChat({ users: [], groupAdmin: {} });
                           setTimeout(function () {
                             if (notif.chat) {

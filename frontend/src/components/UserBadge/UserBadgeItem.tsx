@@ -14,14 +14,14 @@ function UserBadgeItem({ userInfo, handleFunction, isCreate }: any) {
       fontSize="17px"
       color="white"
       background={
-        selectedChat.isGroup && userInfo.id === selectedChat.groupAdmin.id
+        selectedChat?.isGroup && userInfo.id === selectedChat?.groupAdmin?.id
           ? 'green.500'
           : 'purple'
       }
       fontWeight="bold"
       cursor="pointer"
       onClick={() => {
-        if (selectedChat.isGroup && user.id === selectedChat.groupAdmin.id) {
+        if (selectedChat?.isGroup && user?.id === selectedChat?.groupAdmin?.id) {
           handleFunction(userInfo);
         } else if (isCreate) {
           handleFunction(userInfo);

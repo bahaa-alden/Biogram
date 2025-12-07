@@ -26,7 +26,7 @@ function ChatBox({
   return (
     <Box
       display={display || {
-        base: selectedChat.users.length ? 'flex' : 'none',
+        base: selectedChat?.users?.length ? 'flex' : 'none',
         md: 'flex',
       }}
       flexDir="column"

@@ -24,11 +24,11 @@ import {
   useToast,
   VStack
 } from '@chakra-ui/react';
-import axios, { AxiosRequestConfig } from 'axios';
 import { Fragment, useEffect, useState } from 'react';
 import { chatState } from '../../Context/ChatProvider';
+import { chatService } from '../../services/api/chat.service';
+import { userService } from '../../services/api/user.service';
 import { User } from '../../types/interfaces';
-import { storage } from '../../utils/storage';
 import UserListItem from '../UserAvatar/UserListItems';
 import UserBadgeList from '../UserBadge/UserBadgeList';
 
@@ -43,7 +43,7 @@ function UpdateGroupChatModel({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<User[]>(
-    selectedChat.users
+    selectedChat?.users || []
   );
   const [search, setSearch] = useState('');
   const [searchResult, setSearchResult] = useState([]);
@@ -55,15 +55,15 @@ function UpdateGroupChatModel({
 
   // Initialize form data when modal opens or chat changes
   useEffect(() => {
-    if (isOpen) {
-      if (selectedChat.name) {
-        setGroupName(selectedChat.name);
+    if (isOpen && selectedChat) {
+      if (selectedChat?.name) {
+        setGroupName(selectedChat?.name);
       }
-      if (selectedChat.users) {
-        setSelectedUsers(selectedChat.users);
+      if (selectedChat?.users) {
+        setSelectedUsers(selectedChat?.users);
       }
     }
-  }, [isOpen, selectedChat.name, selectedChat.users]);
+  }, [isOpen, selectedChat?.name, selectedChat?.users]);
   const handleDelete = (delUser: User) => {
     setSelectedUsers(selectedUsers.filter((u) => u.id !== delUser.id));
   };
@@ -71,7 +71,7 @@ function UpdateGroupChatModel({
   const handleAddUser = async (userInfo: User) => {
     setLoadingChat(true);
 
-    if (selectedChat.users.includes(userInfo)) {
+    if (selectedChat?.users?.includes(userInfo)) {
       toast({
         title: 'User already in group',
         description: 'User already exist',
@@ -87,19 +87,10 @@ function UpdateGroupChatModel({
     try {
       setLoading(true);
 
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/chats/groupAdd`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        method: 'PATCH',
-        data: { chatId: selectedChat.id, userId: userInfo.id },
-      };
-      const res = await (await axios(config)).data;
-      const { data } = res.data;
-      if (res.status === 'success') {
+      if (!selectedChat?.id) return;
+      const response = await chatService.addToGroup(selectedChat.id, userInfo.id);
+      const data = response.data.data;
+      if (response.status === 'success') {
         toast({
           title: 'Added Successfully',
           status: 'success',
@@ -136,18 +127,13 @@ function UpdateGroupChatModel({
     if (!search) return;
     try {
       setLoading(true);
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/users?search=${search.trim()}`,
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'GET',
-      };
-      const { data } = await (await axios(config)).data.data;
+      const response = await userService.getUsers({ search: search.trim() });
+      const data = response.data.data;
       setSearchResult(data);
-    } catch (err) {
+    } catch (err: any) {
       toast({
         title: 'Error Occurred',
-        description: 'Failed to load the search result',
+        description: err.response?.data?.message || 'Failed to load the search result',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -181,7 +167,7 @@ function UpdateGroupChatModel({
     }
 
     // Check if name has actually changed
-    if (trimmedName === selectedChat.name) {
+    if (trimmedName === selectedChat?.name) {
       toast({
         title: 'No changes detected',
         description: 'Please enter a different group name',
@@ -208,16 +194,10 @@ function UpdateGroupChatModel({
 
     try {
       setRenameLoading(true);
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/chats/groupRename`,
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'PATCH',
-        data: { chatId: selectedChat.id, name: trimmedName },
-      };
-      const res = await (await axios(config)).data;
-      const { data } = res.data;
-      if (res.status === 'success') {
+      if (!selectedChat?.id) return;
+      const response = await chatService.renameGroup(selectedChat.id, trimmedName);
+      const data = response.data.data;
+      if (response.status === 'success') {
         toast({
           title: 'Renamed Successfully',
           status: 'success',
@@ -253,19 +233,10 @@ function UpdateGroupChatModel({
   const handleRemove = async (userInfo: User) => {
     try {
       setLoading(true);
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/chats/groupRemove`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        method: 'PATCH',
-        data: { chatId: selectedChat.id, userId: userInfo.id },
-      };
-      const res = await (await axios(config)).data;
-      const { data } = res.data;
-      if (res.status === 'success') {
+      if (!selectedChat?.id) return;
+      const response = await chatService.removeFromGroup(selectedChat.id, userInfo.id);
+      const data = response.data.data;
+      if (response.status === 'success') {
         toast({
           title: 'Removed Successfully',
           status: 'success',
@@ -301,7 +272,7 @@ function UpdateGroupChatModel({
     setLoading(false);
   };
   // Always render component (hooks must always be called), but conditionally show UI
-  if (!selectedChat.isGroup || !selectedChat.users.length) {
+  if (!selectedChat?.isGroup || !selectedChat?.users?.length) {
     return null;
   }
 
@@ -333,8 +304,8 @@ function UpdateGroupChatModel({
           setSearchResult([]);
           setSearch('');
           // Reset group name to current chat name when closing
-          if (selectedChat.name) {
-            setGroupName(selectedChat.name);
+          if (selectedChat?.name) {
+            setGroupName(selectedChat?.name);
           }
           onClose();
         }}
@@ -358,7 +329,7 @@ function UpdateGroupChatModel({
                   flex={1}
                   isTruncated
                 >
-                  {selectedChat.name}
+                  {selectedChat?.name}
                 </Text>
                 <Badge 
                   colorScheme="brand" 
@@ -404,7 +375,7 @@ function UpdateGroupChatModel({
                   minH="60px"
                 >
                   <UserBadgeList
-                    users={selectedChat.users}
+                    users={selectedChat?.users || []}
                     handleFunction={handleRemove}
                     isCreate={isCreate}
                   />
@@ -440,7 +411,7 @@ function UpdateGroupChatModel({
                     </InputLeftElement>
                     <Input
                       value={groupName}
-                      placeholder={selectedChat.name || 'Enter group name...'}
+                      placeholder={selectedChat?.name || 'Enter group name...'}
                       onChange={(e) => {
                         const value = e.target.value;
                         if (value.length <= 50) {
@@ -477,7 +448,7 @@ function UpdateGroupChatModel({
                     fontWeight="600"
                     isDisabled={
                       !groupName.trim() || 
-                      groupName.trim() === selectedChat.name ||
+                      groupName.trim() === selectedChat?.name ||
                       groupName.length > 50
                     }
                   >
@@ -486,7 +457,7 @@ function UpdateGroupChatModel({
                 </HStack>
               </Box>
 
-              {selectedChat.isGroup && user.id === selectedChat.groupAdmin.id && (
+              {selectedChat?.isGroup && user?.id === selectedChat?.groupAdmin?.id && (
                 <Fragment>
                   <Divider />
 

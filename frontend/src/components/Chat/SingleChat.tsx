@@ -10,14 +10,14 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import axios, { AxiosRequestConfig } from 'axios';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
 import { getSender, getSenderFull } from '../../config/chatLogics';
 import { ENDPOINT } from '../../constants/endpoint';
 import { chatState } from '../../Context/ChatProvider';
+import { messageService } from '../../services/api/message.service';
+import { notificationService } from '../../services/api/notification.service';
 import { Chat, Message } from '../../types/interfaces';
-import { storage } from '../../utils/storage';
 import { MessageSkeleton } from '../Message/MessageSkeleton';
 import ProfileModel from '../miscellaneous/ProfileModel';
 import UpdateGroupChatModel from '../miscellaneous/UpdateGroupChatModel';
@@ -114,15 +114,8 @@ function SingleChat({
       throw new Error('No chat selected');
     }
     
-    const token = storage.getToken();
-    const config: AxiosRequestConfig = {
-      url: `/api/v1/chats/${selectedChat.id}/messages?page=${pageParam}&limit=${pageSize}`,
-      headers: { Authorization: `Bearer ${token}` },
-      method: 'GET',
-    };
-    
-    const response = await axios(config);
-    const data = response.data.data.data;
+    const response = await messageService.getMessages(selectedChat?.id!, { page: pageParam, limit: pageSize });
+    const data = response.data.data;
     return {
       messages: Array.isArray(data) ? data : [],
       nextPage: data.length === pageSize ? pageParam + 1 : undefined,
@@ -225,7 +218,7 @@ function SingleChat({
       emitTypingTimeoutRef.current = setTimeout(() => {
         if (socket?.connected && selectedChat?.id && user?.id) {
           socket.emit('isTyping', {
-            chatId: selectedChat.id,
+            chatId: selectedChat?.id!,
             userId: user.id,
             userName: user.name || 'User',
           });
@@ -236,7 +229,7 @@ function SingleChat({
       emitStopTypingTimeoutRef.current = setTimeout(() => {
         if (socket?.connected && selectedChat?.id && user?.id) {
           socket.emit('stop typing', {
-            chatId: selectedChat.id,
+            chatId: selectedChat?.id!,
             userId: user.id,
           });
         }
@@ -245,7 +238,7 @@ function SingleChat({
       // Message cleared - stop typing immediately
       if (socket?.connected && selectedChat?.id && user?.id) {
         socket.emit('stop typing', {
-          chatId: selectedChat.id,
+          chatId: selectedChat?.id!,
           userId: user.id,
         });
       }
@@ -272,7 +265,7 @@ function SingleChat({
   // Get last read message from localStorage
   useEffect(() => {
     if (selectedChat?.id) {
-      const lastReadKey = `lastRead_${selectedChat.id}`;
+      const lastReadKey = `lastRead_${selectedChat?.id}`;
       const stored = localStorage.getItem(lastReadKey);
       if (stored) {
         setLastReadMessageId(stored);
@@ -313,7 +306,7 @@ function SingleChat({
   useEffect(() => {
     if (!containerRef.current || messages.length === 0 || !selectedChat?.id) return;
 
-    const lastReadKey = `lastRead_${selectedChat.id}`;
+    const lastReadKey = `lastRead_${selectedChat?.id}`;
     let updateTimeout: NodeJS.Timeout;
     let lastScrollTop = containerRef.current.scrollTop;
     let pendingUpdate: string | null = null;
@@ -364,7 +357,9 @@ function SingleChat({
       
       if (visibleMessages.length > 0) {
         const lastVisibleMessage = visibleMessages[visibleMessages.length - 1];
-        updateLastRead(lastVisibleMessage.id);
+        if (lastVisibleMessage?.id) {
+          updateLastRead(lastVisibleMessage.id);
+        }
       }
     };
 
@@ -532,13 +527,7 @@ function SingleChat({
   const markAsRead = useCallback(async (id: string | undefined) => {
     if (!id) return;
     try {
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/chats/${id}/notifications/read`,
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'PATCH',
-      };
-      await axios(config);
+      await notificationService.markNotificationRead(id);
       setFetchNotificationsAgain(!fetchNotificationsAgain);
     } catch (error) {
       // Failed to mark notifications as read
@@ -552,17 +541,19 @@ function SingleChat({
     }
     
     // Update refs with latest values
-    currentChatIdRef.current = selectedChat.id;
-    currentUserIdRef.current = user.id;
+    currentChatIdRef.current = selectedChat?.id;
+    currentUserIdRef.current = user?.id;
     
     setNewMessage('');
     setTypingUser(null);
     selectedChatCompare = selectedChat;
     
-    markAsRead(selectedChat.id);
+    if (selectedChat?.id) {
+      markAsRead(selectedChat.id);
+    }
 
     // Join the chat room
-    if (socket?.connected) {
+    if (socket?.connected && selectedChat?.id) {
       socket.emit('join chat', selectedChat.id);
     }
 
@@ -648,18 +639,13 @@ function SingleChat({
     setIsSending(true);
     
     try {
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/chats/${selectedChat.id}/messages`,
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'POST',
-        data: { content: messageContent },
-      };
-
-      const { data } = await (await axios(config)).data.data;
+      if (!selectedChat?.id) return;
+      
+      const response = await messageService.sendMessage(selectedChat.id, { content: messageContent });
+      const data = response.data.data;
       
       // Ensure socket is connected and joined to chat room
-      if (socket && socket.connected && selectedChat.id) {
+      if (socket && socket.connected && selectedChat?.id) {
         socket.emit('join chat', selectedChat.id);
         socket.emit('new message', data);
       }
@@ -667,20 +653,22 @@ function SingleChat({
       setNewMessage('');
       
       // Add new message to the query cache
-      queryClient.setQueryData(['messages', selectedChat.id], (old: any) => {
-        if (!old) return old;
-        const lastPage = old.pages[old.pages.length - 1];
-        return {
-          ...old,
-          pages: [
-            ...old.pages.slice(0, -1),
-            {
-              ...lastPage,
-              messages: [...lastPage.messages, data],
-            },
-          ],
-        };
-      });
+      if (selectedChat?.id) {
+        queryClient.setQueryData(['messages', selectedChat.id], (old: any) => {
+          if (!old) return old;
+          const lastPage = old.pages[old.pages.length - 1];
+          return {
+            ...old,
+            pages: [
+              ...old.pages.slice(0, -1),
+              {
+                ...lastPage,
+                messages: [...lastPage.messages, data],
+              },
+            ],
+          };
+        });
+      }
       
       scrollToBottom();
       // Only trigger fetchAgain to update chat list, not selectedChat
@@ -701,7 +689,7 @@ function SingleChat({
     // Stop typing indicator after sending
     if (socket?.connected && selectedChat?.id && user?.id) {
       socket.emit('stop typing', {
-        chatId: selectedChat.id,
+        chatId: selectedChat?.id!,
         userId: user.id,
       });
     }
@@ -709,7 +697,7 @@ function SingleChat({
 
   // Listen for socket events (messages, group updates)
   useEffect(() => {
-    if (!socket || !selectedChat.id) return;
+    if (!socket || !selectedChat?.id) return;
 
     const messageListener = (newMessageReceived: Message) => {
       if (!selectedChatCompare?.id || selectedChatCompare.id !== newMessageReceived.chat?.id) {
@@ -717,7 +705,7 @@ function SingleChat({
         setFetchNotificationsAgain(!fetchNotificationsAgain);
       } else {
         // Add received message to the query cache (prevent duplicates)
-        queryClient.setQueryData(['messages', selectedChat.id], (old: any) => {
+        queryClient.setQueryData(['messages', selectedChat?.id!], (old: any) => {
           if (!old) return old;
           const lastPage = old.pages[old.pages.length - 1];
           
@@ -781,10 +769,10 @@ function SingleChat({
         socket.off('group add', groupAddListener);
       }
     };
-  }, [selectedChat.id, socket]);
+  }, [selectedChat?.id, socket]);
   return (
     <Fragment>
-      {selectedChat.users.length ? (
+      {selectedChat?.users?.length ? (
         <Box 
           display="flex" 
           flexDirection="column" 
@@ -841,7 +829,7 @@ function SingleChat({
                 }}
               />
               
-              {!selectedChat.isGroup ? (
+              {!selectedChat?.isGroup ? (
                 <>
                   <Box display="flex" alignItems="center" gap={{ base: 3, md: 4 }} flex="1" minW="0" overflow="hidden">
                     <Box 
@@ -850,8 +838,8 @@ function SingleChat({
                     >
                       <Box
                         as="img"
-                        src={getSenderFull(user, selectedChat.users)?.photo}
-                        alt={getSender(user, selectedChat.users)}
+                        src={getSenderFull(user, selectedChat?.users || [])?.photo}
+                        alt={getSender(user, selectedChat?.users || [])}
                         w={{ base: '44px', md: '46px', lg: '48px' }}
                         h={{ base: '44px', md: '46px', lg: '48px' }}
                         borderRadius="full"
@@ -882,7 +870,7 @@ function SingleChat({
                         isTruncated
                         lineHeight="1.3"
                       >
-                        {getSender(user, selectedChat.users)}
+                        {getSender(user, selectedChat?.users || [])}
                       </Text>
                       <Box
                         key={`typing-status-${typingUser?.id || 'none'}-${selectedChat?.id}`}
@@ -941,9 +929,9 @@ function SingleChat({
                       </Box>
                     </Box>
                   </Box>
-                  {getSenderFull(user, selectedChat.users) && (
+                  {getSenderFull(user, selectedChat?.users || []) && (
                     <ProfileModel
-                      userInfo={getSenderFull(user, selectedChat.users)!}
+                      userInfo={getSenderFull(user, selectedChat?.users || [])!}
                     />
                   )}
                 </>
@@ -979,7 +967,7 @@ function SingleChat({
                         isTruncated
                         lineHeight="1.3"
                       >
-                        {selectedChat.name}
+                        {selectedChat?.name}
                       </Text>
                       <Text
                         fontSize={{ base: '12px', md: '13px', lg: '14px' }}

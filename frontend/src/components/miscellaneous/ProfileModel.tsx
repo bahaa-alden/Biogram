@@ -24,10 +24,9 @@ import {
   useToast,
   VStack,
 } from '@chakra-ui/react';
-import axios from 'axios';
 import { Fragment, useEffect, useState } from 'react';
 import { chatState } from '../../Context/ChatProvider';
-import { storage } from '../../utils/storage';
+import { userService } from '../../services/api/user.service';
 
 function ProfileModel({ userInfo, children }: any) {
   const { user, setUser } = chatState();
@@ -38,14 +37,8 @@ function ProfileModel({ userInfo, children }: any) {
     if (pic === '') return;
     const PicData = new FormData();
     PicData.append('photo', pic);
-    const token = storage.getToken();
-    const res = await axios({
-      method: 'PATCH',
-      url: '/api/v1/users/updateMe',
-      headers: { Authorization: `Bearer ${token}` },
-      data: PicData,
-    });
-    if (res.data.status === 'success') {
+    const response = await userService.updateMe(PicData);
+    if (response.status === 'success') {
       toast({
         title: 'Photo updated',
         status: 'success',
@@ -53,7 +46,7 @@ function ProfileModel({ userInfo, children }: any) {
         isClosable: true,
         position: 'top',
       });
-      setUser(res.data.data.user);
+      setUser(response.data.user);
     }
   };
   useEffect(() => {

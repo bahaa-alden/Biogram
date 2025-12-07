@@ -1,19 +1,19 @@
+import { Avatar, Box, Tooltip, useToast } from '@chakra-ui/react';
+import { franc } from 'franc';
 import React, { useState } from 'react';
-import styles from './../Chat/chat.module.css';
 import { chatState } from '../../Context/ChatProvider';
 import {
-  isSameSender,
+  getMessageTime,
   isLastMessage,
+  isSameSender,
   isSameSenderMargin,
   isSameUser,
   showSenderName,
-  getMessageTime,
 } from '../../config/chatLogics';
-import ProfileModel from '../miscellaneous/ProfileModel';
-import { Avatar, Box, Tooltip, useToast } from '@chakra-ui/react';
-import colors from '../../utils/colors';
-import { franc } from 'franc';
 import { Message } from '../../types/interfaces';
+import colors from '../../utils/colors';
+import ProfileModel from '../miscellaneous/ProfileModel';
+import styles from './../Chat/chat.module.css';
 
 function getBackgroundColor(userName: string | undefined): string {
   if (!userName) return colors[0];
@@ -65,9 +65,9 @@ function MessageItemComponent({ message, messages, index }: MessageItemProps) {
   
   const isSender = user.id === message.sender.id;
   const showAvatar = ((isSameSender(messages, message, index, user.id) &&
-    selectedChat.isGroup) ||
-    (isLastMessage(messages, index, user.id) && selectedChat.isGroup));
-  const marginLeft = isSameSenderMargin(messages, message, index, user.id, selectedChat.isGroup);
+    selectedChat?.isGroup) ||
+    (isLastMessage(messages, index, user.id) && selectedChat?.isGroup));
+  const marginLeft = isSameSenderMargin(messages, message, index, user.id, selectedChat?.isGroup);
   const isSameUserMsg = isSameUser(messages, message, index);
 
   const handleCopy = async () => {
@@ -170,7 +170,7 @@ function MessageItemComponent({ message, messages, index }: MessageItemProps) {
       >
         {/* Sender name for group chats */}
         {showSenderName(messages, message, index, user.id) &&
-          selectedChat.isGroup && message.sender && (
+          selectedChat?.isGroup && message.sender && (
             <Box
               mb={1}
               fontSize="xs"

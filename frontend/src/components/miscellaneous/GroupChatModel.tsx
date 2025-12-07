@@ -23,17 +23,20 @@ import {
   useToast,
   VStack
 } from '@chakra-ui/react';
-import axios, { AxiosRequestConfig } from 'axios';
+import { useQueryClient } from '@tanstack/react-query';
 import { Fragment, useEffect, useState } from 'react';
 import { chatState } from '../../Context/ChatProvider';
+import { chatService } from '../../services/api/chat.service';
+import { userService } from '../../services/api/user.service';
 import { User } from '../../types/interfaces';
-import { storage } from '../../utils/storage';
 import UserListItem from '../UserAvatar/UserListItems';
 import UserBadgeList from '../UserBadge/UserBadgeList';
 
 function GroupChatModel({ children, socket }: any) {
   const isCreate = true;
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { setSelectedChat } = chatState();
+  const queryClient = useQueryClient();
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
@@ -53,18 +56,13 @@ function GroupChatModel({ children, socket }: any) {
     if (!search) return;
     try {
       setLoading(true);
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/users?search=${search.trim()}`,
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'GET',
-      };
-      const { data } = await (await axios(config)).data.data;
+      const response = await userService.getUsers({ search: search.trim() });
+      const data = response.data.data;
       setSearchResult(data);
-    } catch (err) {
+    } catch (err: any) {
       toast({
         title: 'Error Occurred',
-        description: 'Failed to load the search result',
+        description: err.response?.data?.message || 'Failed to load the search result',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -120,17 +118,18 @@ function GroupChatModel({ children, socket }: any) {
     }
     try {
       setLoading(true);
-      const token = storage.getToken();
-      const config: AxiosRequestConfig = {
-        url: `/api/v1/chats/group`,
-        headers: { Authorization: `Bearer ${token}` },
-        method: 'POST',
-        data: { users: selectedUsers.map((u) => u.id), name: groupName.trim() },
-      };
-      const res = await (await axios(config)).data;
-      const { data } = res;
-      if (res.status === 'success') {
-        setChats([data, ...chats]);
+      const response = await chatService.createGroupChat({ 
+        users: selectedUsers.map((u) => u.id), 
+        name: groupName.trim() 
+      });
+      const data = response.data.data;
+      if (response.status === 'success') {
+        // Invalidate and refetch chats list
+        queryClient.invalidateQueries({ queryKey: ['chats'] });
+        
+        // Select the newly created chat - set it directly without clearing first
+        setSelectedChat(data);
+        
         onClose();
         toast({
           title: 'New Group Chat Created',
@@ -156,7 +155,7 @@ function GroupChatModel({ children, socket }: any) {
     setSearch('');
   };
 
-  const { user, chats, setChats, setSelectedChat } = chatState();
+  const { user } = chatState();
 
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
