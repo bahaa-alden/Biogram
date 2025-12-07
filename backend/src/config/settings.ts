@@ -3,7 +3,7 @@ import path from 'path';
 import { validateEnv } from './settings.schema';
 
 // Load .env file from project root (two levels up from src/config)
-config({ path: path.join(__dirname, '..', '..', '.env') });
+config({ path: path.join(__dirname, '..', '..', '..', '.env') });
 
 // Validate environment variables
 const env = validateEnv();

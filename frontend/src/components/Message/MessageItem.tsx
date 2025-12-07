@@ -71,6 +71,7 @@ function MessageItemComponent({ message, messages, index }: MessageItemProps) {
   const isSameUserMsg = isSameUser(messages, message, index);
 
   const handleCopy = async () => {
+    if (!message.content) return;
     try {
       await navigator.clipboard.writeText(message.content);
       setIsCopied(true);
@@ -193,7 +194,7 @@ function MessageItemComponent({ message, messages, index }: MessageItemProps) {
             wordBreak="break-word"
             overflowWrap="break-word"
             whiteSpace="pre-wrap"
-            direction={message.content && franc(message.content) === 'arb' ? 'rtl' : 'ltr'}
+            dir={message.content && franc(message.content) === 'arb' ? 'rtl' : 'ltr'}
             lineHeight="1.4"
           >
             {message.content}

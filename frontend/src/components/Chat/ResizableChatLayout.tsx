@@ -64,14 +64,14 @@ export default function ResizableChatLayout({
           position: 'relative',
         }}
         onMouseEnter={(e) => {
-          const target = e.currentTarget as HTMLElement;
+          const target = e.currentTarget as unknown as HTMLElement;
           target.style.backgroundColor = borderHoverColor;
           target.style.width = '5px';
           target.style.boxShadow = `0 0 12px ${shadowColor}`;
           document.body.style.cursor = 'col-resize';
         }}
         onMouseLeave={(e) => {
-          const target = e.currentTarget as HTMLElement;
+          const target = e.currentTarget as unknown as HTMLElement;
           target.style.backgroundColor = borderColor;
           target.style.width = '3px';
           target.style.boxShadow = `0 0 8px ${shadowColor}`;

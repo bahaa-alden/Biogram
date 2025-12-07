@@ -208,7 +208,7 @@ function MessageList({
                 )
                 .sort((a: any, b: any) => (a.createdAt < b.createdAt ? -1 : 1));
               
-              const lastReadIndex = sortedMessages.findIndex(m => m.id === lastReadMessageId);
+              const lastReadIndex = sortedMessages.findIndex((m: Message) => m.id === lastReadMessageId);
               const hasUnreadMessages = lastReadIndex >= 0 && lastReadIndex < sortedMessages.length - 1;
               
               return sortedMessages.map((message: Message, index: number) => {
