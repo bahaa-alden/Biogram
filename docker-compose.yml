@@ -9,23 +9,8 @@ services:
     restart: unless-stopped
     ports:
       - "${BACKEND_PORT:-5000}:5000"
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      PORT: 5000
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key-change-in-production}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-90d}
-      JWT_COOKIE_EXPIRES_IN: ${JWT_COOKIE_EXPIRES_IN:-90}
-      DATABASE: ${DATABASE:-}
-      DATABASE_LOCAL: ${DATABASE_LOCAL:-}
-      PASSWORD: ${PASSWORD:-}
-      IMGUR_CLIENT_ID: ${IMGUR_CLIENT_ID:-}
-      IMGUR_CLIENT_SECRET: ${IMGUR_CLIENT_SECRET:-}
-      EMAIL_HOST: ${EMAIL_HOST:-}
-      EMAIL_PORT: ${EMAIL_PORT:-587}
-      EMAIL_USERNAME: ${EMAIL_USERNAME:-}
-      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
-      EMAIL_FROM: ${EMAIL_FROM:-}
-      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-}
+    env_file:
+      - .env
     volumes:
       - ./backend/public:/app/public
 
