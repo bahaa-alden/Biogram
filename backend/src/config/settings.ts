@@ -9,6 +9,7 @@ config({ path: path.join(__dirname, '..', '..', '..', '.env') });
 const env = validateEnv();
 
 export const settings = {
+  FRONTEND_URL: env.FRONTEND_URL,
   NODE_ENV: env.NODE_ENV,
   PORT: env.PORT,
   JWT_SECRET: env.JWT_SECRET_KEY,
