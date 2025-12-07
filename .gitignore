@@ -21,9 +21,9 @@ node_modules/
 # Build outputs
 backend/build/
 backend/config/
+dist/
 frontend/dist/
-frontend/dev-dist/
-
+frontend/dev-dist
 # TypeScript
 *.tsbuildinfo
 
