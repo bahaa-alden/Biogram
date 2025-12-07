@@ -90,6 +90,15 @@ export const useSocket = (user: User | undefined) => {
       };
 
       const handleMessageReceived = (newMessageReceived: Message) => {
+        // Validate message has required properties
+        if (!newMessageReceived || !newMessageReceived.createdAt) {
+          console.error(
+            '[useSocket] Invalid message received:',
+            newMessageReceived
+          );
+          return;
+        }
+
         const chatId =
           newMessageReceived.chat?.id || newMessageReceived.chat?._id;
         if (chatId) {

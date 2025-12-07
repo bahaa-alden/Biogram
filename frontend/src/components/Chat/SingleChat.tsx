@@ -700,19 +700,51 @@ function SingleChat({
       setNewMessage('');
       
       // Add new message to the query cache
-      if (selectedChat?.id) {
+      if (selectedChat?.id && data && data.createdAt) {
         queryClient.setQueryData(['messages', selectedChat.id], (old: any) => {
-          if (!old) return old;
-          const lastPage = old.pages[old.pages.length - 1];
+          if (!old || !old.pages || !Array.isArray(old.pages)) return old;
+          
+          const newPages = [...old.pages];
+          const lastPage = newPages[newPages.length - 1];
+          
+          // Handle different page structures
+          let messagesArray: Message[] = [];
+          if (Array.isArray(lastPage)) {
+            messagesArray = lastPage;
+          } else if (lastPage && typeof lastPage === 'object' && Array.isArray(lastPage.messages)) {
+            messagesArray = lastPage.messages;
+          } else {
+            console.error('[sendMessage] Unexpected lastPage structure:', lastPage);
+            return old;
+          }
+          
+          // Check if message already exists
+          const msgId = data.id || data._id;
+          const messageExists = messagesArray.some((msg: Message) => {
+            const existingId = msg.id || msg._id;
+            return existingId && msgId && existingId === msgId;
+          });
+          
+          if (messageExists) {
+            return old; // Don't add duplicate
+          }
+          
+          // Add new message
+          const updatedMessages = [...messagesArray, data];
+          
+          // Update the last page with the correct structure
+          if (Array.isArray(lastPage)) {
+            newPages[newPages.length - 1] = updatedMessages;
+          } else {
+            newPages[newPages.length - 1] = {
+              ...lastPage,
+              messages: updatedMessages,
+            };
+          }
+          
           return {
             ...old,
-            pages: [
-              ...old.pages.slice(0, -1),
-              {
-                ...lastPage,
-                messages: [...lastPage.messages, data],
-              },
-            ],
+            pages: newPages,
           };
         });
       }
@@ -747,34 +779,61 @@ function SingleChat({
     if (!socket || !selectedChat?.id) return;
 
     const messageListener = (newMessageReceived: Message) => {
+      // Validate message has required properties
+      if (!newMessageReceived || !newMessageReceived.createdAt) {
+        console.error('[SingleChat] Invalid message received:', newMessageReceived);
+        return;
+      }
+      
       if (!selectedChatCompare?.id || selectedChatCompare.id !== newMessageReceived.chat?.id) {
         setFetchAgain(!fetchAgain);
         setFetchNotificationsAgain(!fetchNotificationsAgain);
       } else {
         // Add received message to the query cache (prevent duplicates)
         queryClient.setQueryData(['messages', selectedChat?.id!], (old: any) => {
-          if (!old) return old;
-          const lastPage = old.pages[old.pages.length - 1];
+          if (!old || !old.pages || !Array.isArray(old.pages)) return old;
+          
+          const newPages = [...old.pages];
+          const lastPage = newPages[newPages.length - 1];
+          
+          // Handle different page structures
+          let messagesArray: Message[] = [];
+          if (Array.isArray(lastPage)) {
+            messagesArray = lastPage;
+          } else if (lastPage && typeof lastPage === 'object' && Array.isArray(lastPage.messages)) {
+            messagesArray = lastPage.messages;
+          } else {
+            console.error('[SingleChat] Unexpected lastPage structure:', lastPage);
+            return old;
+          }
           
           // Check if message already exists to prevent duplicates
-          const messageExists = lastPage.messages.some(
-            (msg: Message) => msg.id === newMessageReceived.id || 
-            (msg._id === newMessageReceived._id && newMessageReceived._id)
-          );
+          const newMsgId = newMessageReceived.id || newMessageReceived._id;
+          const messageExists = messagesArray.some((msg: Message) => {
+            const msgId = msg.id || msg._id;
+            return msgId && newMsgId && msgId === newMsgId;
+          });
           
           if (messageExists) {
             return old; // Don't update if message already exists
           }
           
+          // Add new message
+          const updatedMessages = [...messagesArray, newMessageReceived];
+          
+          // Update the last page with the correct structure
+          if (Array.isArray(lastPage)) {
+            newPages[newPages.length - 1] = updatedMessages;
+          } else {
+            newPages[newPages.length - 1] = {
+              ...lastPage,
+              messages: updatedMessages,
+            };
+          }
+          
           return {
             ...old,
-            pages: [
-              ...old.pages.slice(0, -1),
-              {
-                ...lastPage,
-                messages: [...lastPage.messages, newMessageReceived],
-              },
-            ],
+            pages: newPages,
           };
         });
         
