@@ -1,11 +1,14 @@
-import { ViewIcon } from '@chakra-ui/icons';
+import { AddIcon, SearchIcon } from '@chakra-ui/icons';
 import {
+  Badge,
   Box,
   Button,
+  Divider,
   FormControl,
-  IconButton,
-  Image,
+  HStack,
   Input,
+  InputGroup,
+  InputLeftElement,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -13,20 +16,20 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Skeleton,
   Spinner,
   Text,
+  useColorModeValue,
   useDisclosure,
+  useToast,
+  VStack
 } from '@chakra-ui/react';
-import React, { Fragment, useEffect, useState } from 'react';
-import { User } from '../../types/interfaces';
-import { useToast, Stack } from '@chakra-ui/react';
-import { chatState } from '../../Context/ChatProvider';
-import { storage } from '../../utils/storage';
 import axios, { AxiosRequestConfig } from 'axios';
+import { Fragment, useEffect, useState } from 'react';
+import { chatState } from '../../Context/ChatProvider';
+import { User } from '../../types/interfaces';
+import { storage } from '../../utils/storage';
 import UserListItem from '../UserAvatar/UserListItems';
 import UserBadgeList from '../UserBadge/UserBadgeList';
-import ChatLoading from '../../utils/ChatLoading';
 
 function GroupChatModel({ children, socket }: any) {
   const isCreate = true;
@@ -155,78 +158,253 @@ function GroupChatModel({ children, socket }: any) {
 
   const { user, chats, setChats, setSelectedChat } = chatState();
 
+  const bgColor = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const textColor = useColorModeValue('gray.700', 'gray.200');
+  const secondaryTextColor = useColorModeValue('gray.600', 'gray.400');
+  const cardBg = useColorModeValue('gray.50', 'gray.700');
+
   return (
     <Fragment>
       <span onClick={onOpen}>{children}</span>
       <Modal
-        size={{ base: 'xs', md: 'md', lg: '2xl' }}
+        size={{ base: 'sm', md: 'lg', lg: 'xl' }}
         isOpen={isOpen}
         onClose={() => {
           setSelectedUsers([]);
           setSearchResult([]);
           setSearch('');
+          setGroupName('');
           onClose();
         }}
+        isCentered
+        motionPreset="slideInBottom"
+        scrollBehavior="inside"
       >
-        <ModalOverlay />
-        <ModalContent>
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent bg={bgColor} mx={4} maxH="90vh">
           <ModalHeader
-            display="flex"
-            justifyContent="center"
-            fontSize="40px"
-            fontFamily="work sans"
+            borderBottom="1px solid"
+            borderColor={borderColor}
+            pb={4}
           >
-            Create Group Chat
+            <VStack spacing={0} align="stretch">
+              <HStack>
+                <AddIcon boxSize={5} color="brand.500" />
+                <Text
+                  fontSize={{ base: 'xl', md: '2xl' }}
+                  fontWeight="700"
+                  color={textColor}
+                  fontFamily="work sans"
+                  flex={1}
+                >
+                  Create Group Chat
+                </Text>
+              </HStack>
+              <Text
+                fontSize="sm"
+                color={secondaryTextColor}
+                fontWeight="normal"
+              >
+                Add members and start a group conversation
+              </Text>
+            </VStack>
           </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody
-            display="flex"
-            flexDir="column"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <FormControl>
-              <Input
-                placeholder="Chat Name"
-                mb="3"
-                onChange={(e) => setGroupName(e.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <Input
-                placeholder="Add Users eg: Bahaa, Ali, Islam"
-                mb={1}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </FormControl>
+          <ModalCloseButton top={4} right={4} />
 
-            <Box w="100%" display="flex" flexWrap="wrap">
-              <UserBadgeList
-                users={selectedUsers}
-                handleFunction={handleDelete}
-                isCreate={isCreate}
-              />
-            </Box>
-            {loading ? (
-              <ChatLoading num={4} />
-            ) : (
-              <Stack w="100%">
-                <UserListItem
-                  users={searchResult.slice(0, 4)}
-                  handleFunction={handleGroup}
-                  loadingChat={loadingChat}
-                  isClicked={isClicked}
-                  setIsClicked={setIsClicked}
-                />
-              </Stack>
-            )}
+          <ModalBody py={4}>
+            <VStack spacing={5} align="stretch">
+              {/* Group Name Section */}
+              <Box>
+                <Text
+                  fontSize="sm"
+                  fontWeight="700"
+                  color={textColor}
+                  mb={2}
+                  textTransform="uppercase"
+                  letterSpacing="wide"
+                >
+                  Group Name
+                </Text>
+                <FormControl>
+                  <Input
+                    placeholder="Enter group name..."
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    size="lg"
+                    bg={cardBg}
+                    border="1px solid"
+                    borderColor={borderColor}
+                    _hover={{ borderColor: useColorModeValue('brand.400', 'brand.500') }}
+                    _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px' }}
+                  />
+                </FormControl>
+              </Box>
+
+              <Divider />
+
+              {/* Selected Members Section */}
+              {selectedUsers.length > 0 && (
+                <Box>
+                  <HStack justify="space-between" mb={2}>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="700"
+                      color={textColor}
+                      textTransform="uppercase"
+                      letterSpacing="wide"
+                    >
+                      Selected Members
+                    </Text>
+                    <Badge colorScheme="brand" px={2} py={1} borderRadius="md">
+                      {selectedUsers.length} {selectedUsers.length === 1 ? 'Member' : 'Members'}
+                    </Badge>
+                  </HStack>
+                  <Box
+                    bg={cardBg}
+                    p={3}
+                    borderRadius="lg"
+                    border="1px solid"
+                    borderColor={borderColor}
+                    minH="60px"
+                  >
+                    <UserBadgeList
+                      users={selectedUsers}
+                      handleFunction={handleDelete}
+                      isCreate={isCreate}
+                    />
+                  </Box>
+                </Box>
+              )}
+
+              <Divider />
+
+              {/* Search Users Section */}
+              <Box>
+                <Text
+                  fontSize="sm"
+                  fontWeight="700"
+                  color={textColor}
+                  mb={2}
+                  textTransform="uppercase"
+                  letterSpacing="wide"
+                >
+                  Add Members
+                </Text>
+                <FormControl mb={3}>
+                  <InputGroup size="lg">
+                    <InputLeftElement pointerEvents="none">
+                      <SearchIcon color={secondaryTextColor} />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Search users by name or email..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      bg={cardBg}
+                      border="1px solid"
+                      borderColor={borderColor}
+                      _hover={{ borderColor: useColorModeValue('brand.400', 'brand.500') }}
+                      _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px' }}
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                {loading ? (
+                  <Box display="flex" justifyContent="center" py={6}>
+                    <VStack spacing={3}>
+                      <Spinner
+                        size="lg"
+                        color="brand.500"
+                        thickness="3px"
+                      />
+                      <Text fontSize="sm" color={secondaryTextColor}>
+                        Searching...
+                      </Text>
+                    </VStack>
+                  </Box>
+                ) : searchResult.length > 0 ? (
+                  <Box
+                    bg={cardBg}
+                    borderRadius="lg"
+                    border="1px solid"
+                    borderColor={borderColor}
+                    maxH="250px"
+                    overflowY="auto"
+                  >
+                    <UserListItem
+                      users={searchResult.slice(0, 6)}
+                      handleFunction={handleGroup}
+                      loadingChat={loadingChat}
+                      isClicked={isClicked}
+                      setIsClicked={setIsClicked}
+                    />
+                  </Box>
+                ) : search ? (
+                  <Box
+                    py={6}
+                    textAlign="center"
+                    border="1px dashed"
+                    borderColor={borderColor}
+                    borderRadius="lg"
+                    bg={cardBg}
+                  >
+                    <SearchIcon boxSize={8} color={secondaryTextColor} mb={2} />
+                    <Text color={secondaryTextColor} fontSize="sm" fontWeight="500">
+                      No users found
+                    </Text>
+                  </Box>
+                ) : (
+                  <Box
+                    py={6}
+                    textAlign="center"
+                    border="1px dashed"
+                    borderColor={borderColor}
+                    borderRadius="lg"
+                    bg={cardBg}
+                  >
+                    <SearchIcon boxSize={8} color={secondaryTextColor} mb={2} />
+                    <Text color={secondaryTextColor} fontSize="sm" fontWeight="500">
+                      Search for users to add
+                    </Text>
+                    <Text color={secondaryTextColor} fontSize="xs" mt={1}>
+                      Group requires at least 2 members
+                    </Text>
+                  </Box>
+                )}
+              </Box>
+            </VStack>
           </ModalBody>
 
-          <ModalFooter>
-            <Button colorScheme="blue" onClick={handleSubmit}>
-              Create Chat
-            </Button>
+          <ModalFooter
+            borderTop="1px solid"
+            borderColor={borderColor}
+            pt={4}
+          >
+            <HStack spacing={3} w="full" justify="flex-end">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSelectedUsers([]);
+                  setSearchResult([]);
+                  setSearch('');
+                  setGroupName('');
+                  onClose();
+                }}
+                fontWeight="600"
+              >
+                Cancel
+              </Button>
+              <Button
+                colorScheme="brand"
+                onClick={handleSubmit}
+                isDisabled={!groupName || selectedUsers.length < 2}
+                leftIcon={<AddIcon />}
+                fontWeight="600"
+                px={6}
+              >
+                Create Group
+              </Button>
+            </HStack>
           </ModalFooter>
         </ModalContent>
       </Modal>

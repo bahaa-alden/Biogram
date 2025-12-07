@@ -1,26 +1,38 @@
 import React, { useState } from 'react';
 import { Box, Avatar, Text, Spinner } from '@chakra-ui/react';
 
-function UserItem({
+import { User } from '../../types/interfaces';
+
+interface UserItemProps {
+  user: User;
+  handleFunction: (user: User) => void;
+  loadingChat: boolean;
+  setIsClicked: (index: number) => void;
+  isClicked: number | undefined;
+  index: number;
+}
+
+const UserItem = React.memo(function UserItem({
   user,
   handleFunction,
   loadingChat,
   setIsClicked,
   isClicked,
   index,
-}: any) {
+}: UserItemProps) {
   return (
     <Box
       onClick={() => {
         setIsClicked(index);
         handleFunction(user);
       }}
-      bg="#e8e8e8"
-      _hover={{ bg: '#38b2ac', color: 'white' }}
+      bg="gray.100"
+      _dark={{ bg: 'gray.700', color: 'gray.100' }}
+      _hover={{ bg: 'brand.500', color: 'white' }}
       w="100%"
       display="flex"
       alignItems="center"
-      color="black"
+      color="gray.800"
       px="2"
       py="2"
       mb="2"
@@ -52,6 +64,8 @@ function UserItem({
       )}
     </Box>
   );
-}
+});
+
+UserItem.displayName = 'UserItem';
 
 export default UserItem;

@@ -1,18 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300&display=swap');
 .App {
   min-height: 100vh;
   display: flex;
-  background: rgb(26, 193, 222);
+  width: 100%;
+  overflow-x: hidden;
 }
 
+/* Modern scrollbar styling */
 ::-webkit-scrollbar {
-  width: 0;
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(136, 136, 136, 0.281);
+  background: rgba(136, 136, 136, 0.4);
+  border-radius: 4px;
+  transition: background 0.2s;
 }
 
-::-webkit-scrollbar-thumb:hove {
-  background: #555;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(136, 136, 136, 0.6);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(136, 136, 136, 0.4) transparent;
 }

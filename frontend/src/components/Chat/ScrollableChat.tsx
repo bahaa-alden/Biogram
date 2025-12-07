@@ -1,15 +1,37 @@
-import ScrollableFeed from 'react-scrollable-feed';
+import { Message } from '../../types/interfaces';
 import MessageList from '../Message/MessageList';
 
-function ScrollableChat({ containerRef, messages, handleScroll }: any) {
+interface ScrollableChatProps {
+  containerRef: React.RefObject<HTMLDivElement>;
+  messages: Message[];
+  loadMoreTriggerRef?: React.RefObject<HTMLDivElement>;
+  isLoadingMore?: boolean;
+  isEndOfMessages?: boolean;
+  lastReadMessageId?: string | null;
+  lastReadMessageRef?: React.RefObject<HTMLDivElement>;
+}
+
+function ScrollableChat({ 
+  containerRef, 
+  messages, 
+  loadMoreTriggerRef, 
+  isLoadingMore,
+  isEndOfMessages,
+  lastReadMessageId,
+  lastReadMessageRef
+}: ScrollableChatProps) {
+  // For now, use the existing MessageList component
+  // Virtualization can be added later if needed for performance
   return (
-    <ScrollableFeed>
-      <MessageList
-        containerRef={containerRef}
-        handleScroll={handleScroll}
-        messages={messages}
-      />
-    </ScrollableFeed>
+    <MessageList
+      containerRef={containerRef}
+      loadMoreTriggerRef={loadMoreTriggerRef}
+      isLoadingMore={isLoadingMore}
+      isEndOfMessages={isEndOfMessages}
+      messages={messages}
+      lastReadMessageId={lastReadMessageId}
+      lastReadMessageRef={lastReadMessageRef}
+    />
   );
 }
 

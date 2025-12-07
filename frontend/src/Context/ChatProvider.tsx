@@ -1,60 +1,44 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { storage } from '../utils/storage';
 import { GlobalContextType, INITIAL_VALUE } from '../types/context';
-import { Chat, User, props } from '../types/interfaces';
+import { Chat, User, props, Notification } from '../types/interfaces';
+import { useAuth } from '../hooks/queries/useAuth';
 
 const ChatContext = createContext<GlobalContextType>(INITIAL_VALUE);
+
 const ChatProvider = ({ children }: props) => {
-  const navigate = useNavigate();
+  // Get user from React Query
+  const { data: userData, isLoading: userLoading } = useAuth();
   const [user, setUser] = useState<User>({});
   const [selectedChat, setSelectedChat] = useState<Chat>({
     users: [],
     groupAdmin: {},
   });
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [notification, setNotification] = useState<any>([]);
+  const [notification, setNotification] = useState<Notification[]>([]);
   const [lo, setLo] = useState(true);
-  const fetchUserData = () => {
-    const token = storage.getToken();
-    if (!token) return;
 
-    const res = axios
-      .get(`/api/v1/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-      .then((res) => {
-        setUser(res.data.data.data);
-        return res.data.data.data;
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-
-    return res;
-  };
-
+  // Update user when query data changes
   useEffect(() => {
-    fetchUserData();
-    setTimeout(function () {
-      setLo(false);
-    }, 1000);
-  }, []);
+    if (userData) {
+      setUser(userData);
+    }
+    if (!userLoading) {
+      setTimeout(() => {
+        setLo(false);
+      }, 500);
+    }
+  }, [userData, userLoading]);
+
   return (
     <ChatContext.Provider
       value={{
-        lo,
+        lo: lo || userLoading,
         setLo,
-        user,
+        user: userData || user,
         setUser,
         selectedChat,
         setSelectedChat,
-        chats,
-        setChats,
+        chats: [], // Removed - use useChats hook instead
+        setChats: () => {}, // Removed - use useChats hook instead
         setNotification,
         notification,
       }}

@@ -9,7 +9,7 @@ export enum InputActionKind {
 // An interface for our actions
 export interface InputAction {
   type: InputActionKind;
-  payload: any;
+  payload: string | File;
 }
 
 // An interface for our state
@@ -18,7 +18,7 @@ export interface authState {
   email: string;
   password: string;
   passwordConfirm?: string;
-  pic?: any;
+  pic?: File | string;
 }
 
 export const initialState: authState = {

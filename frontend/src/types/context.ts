@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { User, Chat } from './interfaces';
+import { User, Chat, Notification } from './interfaces';
 
 export type GlobalContextType = {
   user: User;
@@ -8,8 +8,8 @@ export type GlobalContextType = {
   setChats: (value: Chat[]) => void;
   selectedChat: Chat;
   setSelectedChat: (value: Chat) => void;
-  notification: any;
-  setNotification: (value: any) => void;
+  notification: Notification[];
+  setNotification: (value: Notification[]) => void;
   lo: boolean;
   setLo: (value: boolean) => void;
 };
@@ -21,7 +21,7 @@ export const INITIAL_VALUE: GlobalContextType = {
   setChats: () => {},
   selectedChat: { users: [], groupAdmin: {} },
   setSelectedChat: () => {},
-  notification: {},
+  notification: [],
   setNotification: () => {},
   lo: false,
   setLo: () => false,

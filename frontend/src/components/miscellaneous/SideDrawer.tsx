@@ -1,54 +1,66 @@
-import { Fragment, useEffect } from 'react';
-import { useState } from 'react';
 import {
-  useToast,
   Avatar,
+  Badge,
   Box,
   Button,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  FormControl,
+  HStack,
+  IconButton,
+  Input,
+  InputGroup,
+  InputLeftElement,
   Menu,
   MenuButton,
   MenuDivider,
   MenuItem,
   MenuList,
+  Spinner,
   Text,
   Tooltip,
-  Drawer,
-  DrawerBody,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerOverlay,
-  DrawerContent,
-  useDisclosure,
-  Input,
-  Spinner,
-  useColorModeValue,
   useColorMode,
-  Badge,
-  FormControl,
+  useColorModeValue,
+  useDisclosure,
+  useToast,
+  VStack
 } from '@chakra-ui/react';
+import { Fragment, useEffect, useState } from 'react';
 
 import {
   BellIcon,
   ChevronDownIcon,
   MoonIcon,
   Search2Icon,
+  SearchIcon,
   SunIcon,
 } from '@chakra-ui/icons';
-import { chatState } from '../../Context/ChatProvider';
-import ProfileModel from './ProfileModel';
-import { useNavigate } from 'react-router-dom';
 import axios, { AxiosRequestConfig } from 'axios';
-import { storage } from '../../utils/storage';
-import ChatLoading from '../../utils/ChatLoading';
-import UserListItem from '../UserAvatar/UserListItems';
-import { Chat, User } from '../../types/interfaces';
+import { useNavigate } from 'react-router-dom';
 import { getSender } from '../../config/chatLogics';
+import { chatState } from '../../Context/ChatProvider';
+import { Notification, User } from '../../types/interfaces';
+import { storage } from '../../utils/storage';
+import UserListItem from '../UserAvatar/UserListItems';
+import ProfileModel from './ProfileModel';
+
+interface SideDrawerProps {
+  bg: string;
+  color?: string;
+  fetchNotificationsAgain: boolean;
+  setFetchNotificationsAgain: (value: boolean) => void;
+}
 
 function SideDrawer({
   bg,
   fetchNotificationsAgain,
   setFetchNotificationsAgain,
-}: any) {
+}: SideDrawerProps) {
   const {
     user,
     selectedChat,
@@ -105,9 +117,8 @@ function SideDrawer({
       setLoading(true);
       const token = storage.getToken();
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await (
-        await axios.get(`/api/v1/users?search=${search.trim()}`, config)
-      ).data.data;
+      const response = await axios.get(`/api/v1/users?search=${search.trim()}`, config);
+      const { data } = response.data.data;
       setSearchResult(data);
     } catch (err: any) {
       toast({
@@ -163,124 +174,268 @@ function SideDrawer({
     }, 100);
     return () => clearTimeout(h);
   }, [search]);
+
+  const headerBg = useColorModeValue('white', 'gray.800');
+  const headerBorderColor = useColorModeValue('gray.200', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const secondaryTextColor = useColorModeValue('gray.600', 'gray.400');
+  const cardBg = useColorModeValue('gray.50', 'gray.700');
+  const brandGradient = useColorModeValue(
+    'linear(to-r, brand.500, brand.600)',
+    'linear(to-r, brand.400, brand.500)'
+  );
+
   return (
     <Fragment>
       <Box
-        display={'flex'}
+        display="flex"
         justifyContent="space-between"
         alignItems="center"
         w="100%"
-        background="white"
-        p={{ base: '2px 5px 2px 5px' }}
-        borderWidth="5px"
-        bg={bg}
+        bg={headerBg}
+        px={{ base: 3, md: 4, lg: 5 }}
+        py={{ base: 2.5, md: 3 }}
+        borderBottomWidth="1px"
+        borderBottomColor={headerBorderColor}
+        boxShadow="0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)"
+        position="sticky"
+        top={0}
+        zIndex={100}
+        backdropFilter="blur(10px)"
       >
-        <Tooltip label="Search Users To Chat" placement="bottom-end">
-          <Button variant="ghost" onClick={onOpen}>
-            <Search2Icon />
-            <Text display={{ base: 'none', md: 'flex' }} px="4">
-              Search User
+        {/* Search Button */}
+        <Tooltip label="Search Users To Chat" placement="bottom">
+          <Button
+            onClick={onOpen}
+            aria-label="Search users to chat"
+            leftIcon={<Search2Icon />}
+            variant="ghost"
+            colorScheme="brand"
+            size={{ base: 'sm', md: 'md' }}
+            fontWeight="600"
+          >
+            <Text display={{ base: 'none', md: 'flex' }}>
+              Search
             </Text>
           </Button>
         </Tooltip>
-        <Text fontSize={'2xl'} fontFamily={'work sans'}>
+
+        {/* Logo/Title */}
+        <Text
+          as="h1"
+          fontSize={{ base: 'xl', md: '2xl' }}
+          fontFamily="work sans"
+          fontWeight="800"
+          bgGradient={brandGradient}
+          bgClip="text"
+          letterSpacing="-0.5px"
+        >
           Bio-Gram
         </Text>
-        <div>
+
+        {/* Right Side Menu */}
+        <HStack spacing={{ base: 1, md: 2 }}>
+          {/* Notifications */}
           <Menu>
-            <MenuButton p={1}>
-              <Badge
-                bg={notification.length ? 'red' : 'white'}
-                color={notification.length ? 'white' : 'black'}
-                borderRadius={'3'}
+            <Tooltip label="Notifications" placement="bottom">
+              <MenuButton
+                as={IconButton}
+                icon={<BellIcon />}
+                variant="ghost"
+                colorScheme="brand"
+                size={{ base: 'sm', md: 'md' }}
+                position="relative"
+                aria-label={`Notifications${notification.length ? `: ${notification.length} unread` : ''}`}
               >
-                {notification.length}
-              </Badge>
-              <BellIcon fontSize={'2xl'} m="1" />
-            </MenuButton>
-            <MenuList pl="2">
-              {!notification.length && 'NO New Messages'}
-              {notification.map((notif: any) => (
-                <MenuItem
-                  onClick={() => {
-                    if (
-                      notif.message &&
-                      notif.message.chat.id !== selectedChat.id
-                    ) {
-                      setSelectedChat({ users: [], groupAdmin: {} });
-                      setTimeout(function () {
-                        setSelectedChat(notif.message.chat);
-                      }, 100);
-                    } else {
-                      if (notif.chat.id !== selectedChat.id) {
+                {notification.length > 0 && (
+                  <Badge
+                    position="absolute"
+                    top="-1"
+                    right="-1"
+                    bg="red.500"
+                    color="white"
+                    borderRadius="full"
+                    minW="20px"
+                    minH="20px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    fontSize="xs"
+                    fontWeight="bold"
+                    boxShadow="md"
+                  >
+                    {notification.length > 9 ? '9+' : notification.length}
+                  </Badge>
+                )}
+              </MenuButton>
+            </Tooltip>
+            <MenuList
+              maxH="400px"
+              overflowY="auto"
+              minW="280px"
+              py={2}
+              boxShadow="xl"
+              border="1px solid"
+              borderColor={headerBorderColor}
+            >
+              <Box px={4} py={2} borderBottom="1px solid" borderColor={headerBorderColor}>
+                <Text fontWeight="700" fontSize="md" color={textColor}>
+                  Notifications
+                </Text>
+                <Text fontSize="xs" color={secondaryTextColor}>
+                  {notification.length} unread messages
+                </Text>
+              </Box>
+              
+              {!notification.length ? (
+                <Box py={8} textAlign="center">
+                  <BellIcon boxSize={10} color={secondaryTextColor} mb={2} />
+                  <Text color={secondaryTextColor} fontSize="sm">
+                    No new notifications
+                  </Text>
+                </Box>
+              ) : (
+                notification.map((notif: Notification, index: number) => (
+                  <MenuItem
+                    key={notif.id || notif._id || `notif-${index}`}
+                    onClick={() => {
+                      if (
+                        notif.message &&
+                        notif.message.chat &&
+                        notif.message.chat.id !== selectedChat.id
+                      ) {
                         setSelectedChat({ users: [], groupAdmin: {} });
                         setTimeout(function () {
-                          setSelectedChat(notif.chat);
+                          if (notif.message?.chat) {
+                            setSelectedChat(notif.message.chat);
+                          }
                         }, 100);
+                      } else {
+                        if (notif.chat && notif.chat.id !== selectedChat.id) {
+                          setSelectedChat({ users: [], groupAdmin: {} });
+                          setTimeout(function () {
+                            if (notif.chat) {
+                              setSelectedChat(notif.chat);
+                            }
+                          }, 100);
+                        }
                       }
-                    }
-                  }}
-                  key={notif.id}
-                >
-                  {notif.message ? (
-                    <>
-                      {notif.message.chat.isGroup
-                        ? `New Message in ${notif.message.chat.name}`
-                        : `New Message from ${getSender(
-                            user,
-                            notif.message.chat.users
-                          )}`}
-                    </>
-                  ) : (
-                    `${notif.chat.groupAdmin.name.split(' ')[0]} Added You To ${
-                      notif.chat.name
-                    } Group`
-                  )}
-                </MenuItem>
-              ))}
+                    }}
+                    py={3}
+                    px={4}
+                    _hover={{ bg: cardBg }}
+                  >
+                    <VStack align="start" spacing={1} w="full">
+                      <Text fontSize="sm" fontWeight="600" color={textColor} noOfLines={1}>
+                        {notif.message && notif.message.chat ? (
+                          <>
+                            {notif.message.chat.isGroup
+                              ? notif.message.chat.name
+                              : getSender(user, notif.message.chat.users)}
+                          </>
+                        ) : notif.chat ? (
+                          notif.chat.name || 'Group'
+                        ) : (
+                          'Notification'
+                        )}
+                      </Text>
+                      <Text fontSize="xs" color={secondaryTextColor} noOfLines={2}>
+                        {notif.message && notif.message.chat ? (
+                          <>
+                            {notif.message.chat.isGroup
+                              ? `New message in group`
+                              : `New message`}
+                          </>
+                        ) : notif.chat ? (
+                          `${notif.chat.groupAdmin?.name?.split(' ')[0] || 'Someone'} added you to the group`
+                        ) : (
+                          'New notification'
+                        )}
+                      </Text>
+                    </VStack>
+                  </MenuItem>
+                ))
+              )}
             </MenuList>
           </Menu>
+
+          {/* User Menu */}
           <Menu>
             <MenuButton
-              px={{ base: '10px', md: '15px', lg: '15px' }}
               as={Button}
+              variant="ghost"
               rightIcon={<ChevronDownIcon />}
+              px={{ base: 2, md: 3 }}
+              size={{ base: 'sm', md: 'md' }}
             >
-              {user.photo && (
-                <Avatar
-                  size="sm"
-                  cursor="pointer"
-                  name={user.name}
-                  src={user.photo}
-                />
-              )}
+              <Avatar
+                size="sm"
+                name={user.name}
+                src={user.photo}
+              />
             </MenuButton>
-            <MenuList>
+            <MenuList
+              minW="200px"
+              boxShadow="xl"
+              border="1px solid"
+              borderColor={headerBorderColor}
+              py={2}
+            >
+              <Box px={4} py={2} borderBottom="1px solid" borderColor={headerBorderColor}>
+                <Text fontWeight="700" fontSize="sm" color={textColor} isTruncated>
+                  {user.name}
+                </Text>
+                <Text fontSize="xs" color={secondaryTextColor} isTruncated>
+                  {user.email}
+                </Text>
+              </Box>
+              
               <ProfileModel userInfo={user}>
-                <MenuItem>My Profile</MenuItem>
+                <MenuItem py={3} _hover={{ bg: cardBg }}>
+                  <HStack spacing={3}>
+                    <Avatar size="xs" name={user.name} src={user.photo} />
+                    <Text fontWeight="500">My Profile</Text>
+                  </HStack>
+                </MenuItem>
               </ProfileModel>
+              
               <MenuDivider />
-              <MenuItem onClick={toggleColorMode}>
-                {colorMode === 'light' ? (
-                  <>
-                    <MoonIcon />
-                    <Text lineHeight="0" px="2">
-                      Dark
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <SunIcon />
-                    <Text lineHeight="0" px="2">
-                      Light
-                    </Text>
-                  </>
-                )}
+              
+              <MenuItem
+                onClick={toggleColorMode}
+                aria-label={`Switch to ${colorMode === 'light' ? 'dark' : 'light'} mode`}
+                py={3}
+                _hover={{ bg: cardBg }}
+              >
+                <HStack spacing={3}>
+                  {colorMode === 'light' ? (
+                    <>
+                      <MoonIcon boxSize={4} />
+                      <Text fontWeight="500">Dark Mode</Text>
+                    </>
+                  ) : (
+                    <>
+                      <SunIcon boxSize={4} />
+                      <Text fontWeight="500">Light Mode</Text>
+                    </>
+                  )}
+                </HStack>
               </MenuItem>
-              <MenuItem onClick={logoutHandler}> Logout</MenuItem>
+              
+              <MenuDivider />
+              
+              <MenuItem
+                onClick={logoutHandler}
+                aria-label="Logout"
+                py={3}
+                _hover={{ bg: 'red.50', color: 'red.600' }}
+                color="red.500"
+              >
+                <Text fontWeight="600">Logout</Text>
+              </MenuItem>
             </MenuList>
           </Menu>
-        </div>
+        </HStack>
       </Box>
 
       <Drawer
@@ -291,36 +446,161 @@ function SideDrawer({
           setSearchResult([]);
           setSearch('');
         }}
+        size="md"
       >
-        <DrawerOverlay />
-        <DrawerContent>
-          <DrawerHeader borderBottomWidth="1px">Search Users</DrawerHeader>
-          <DrawerBody>
-            <Box display="flex" pb="2">
+        <DrawerOverlay backdropFilter="blur(4px)" />
+        <DrawerContent bg={headerBg}>
+          <DrawerHeader
+            borderBottomWidth="1px"
+            borderBottomColor={headerBorderColor}
+            pb={4}
+          >
+            <VStack spacing={0} align="stretch">
+              <Text
+                fontSize={{ base: 'xl', md: '2xl' }}
+                fontWeight="700"
+                color={textColor}
+                fontFamily="work sans"
+              >
+                Search Users
+              </Text>
+              <Text
+                fontSize="sm"
+                color={secondaryTextColor}
+                fontWeight="normal"
+              >
+                Find people to start a conversation
+              </Text>
+            </VStack>
+          </DrawerHeader>
+          <DrawerCloseButton top={4} right={4} />
+          
+          <DrawerBody pt={4}>
+            <VStack spacing={4} align="stretch">
+              {/* Search Input */}
               <FormControl>
-                <Input
-                  placeholder="Search by name or email"
-                  mr="2"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+                <InputGroup size="lg">
+                  <InputLeftElement pointerEvents="none">
+                    <SearchIcon color={secondaryTextColor} />
+                  </InputLeftElement>
+                  <Input
+                    placeholder="Search by name or email..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    aria-label="Search users by name or email"
+                    bg={cardBg}
+                    border="1px solid"
+                    borderColor={headerBorderColor}
+                    _hover={{ borderColor: useColorModeValue('brand.400', 'brand.500') }}
+                    _focus={{ 
+                      borderColor: 'brand.500', 
+                      boxShadow: '0 0 0 1px',
+                      bg: headerBg
+                    }}
+                    fontSize="md"
+                  />
+                </InputGroup>
               </FormControl>
-            </Box>
-            {loading ? (
-              <ChatLoading num={10} />
-            ) : (
-              <UserListItem
-                users={searchResult}
-                handleFunction={handleAccess}
-                loadingChat={loadingChat}
-                isClicked={isClicked}
-                setIsClicked={setIsClicked}
-              />
-            )}
+
+              {/* Results Section */}
+              <Box>
+                {search && (
+                  <Text
+                    fontSize="xs"
+                    fontWeight="700"
+                    color={secondaryTextColor}
+                    textTransform="uppercase"
+                    letterSpacing="wide"
+                    mb={3}
+                  >
+                    {loading ? 'Searching...' : `${searchResult.length} Results`}
+                  </Text>
+                )}
+                
+                {loading ? (
+                  <Box py={6}>
+                    <VStack spacing={3}>
+                      <Spinner
+                        size="lg"
+                        color="brand.500"
+                        thickness="3px"
+                      />
+                      <Text fontSize="sm" color={secondaryTextColor}>
+                        Searching for users...
+                      </Text>
+                    </VStack>
+                  </Box>
+                ) : searchResult.length > 0 ? (
+                  <Box
+                    border="1px solid"
+                    borderColor={headerBorderColor}
+                    borderRadius="lg"
+                    overflow="hidden"
+                  >
+                    <UserListItem
+                      users={searchResult}
+                      handleFunction={handleAccess}
+                      loadingChat={loadingChat}
+                      isClicked={isClicked}
+                      setIsClicked={setIsClicked}
+                    />
+                  </Box>
+                ) : search ? (
+                  <Box
+                    py={8}
+                    textAlign="center"
+                    border="1px dashed"
+                    borderColor={headerBorderColor}
+                    borderRadius="lg"
+                    bg={cardBg}
+                  >
+                    <SearchIcon boxSize={10} color={secondaryTextColor} mb={2} />
+                    <Text color={secondaryTextColor} fontSize="sm" fontWeight="500">
+                      No users found
+                    </Text>
+                    <Text color={secondaryTextColor} fontSize="xs" mt={1}>
+                      Try searching with a different name or email
+                    </Text>
+                  </Box>
+                ) : (
+                  <Box
+                    py={8}
+                    textAlign="center"
+                    border="1px dashed"
+                    borderColor={headerBorderColor}
+                    borderRadius="lg"
+                    bg={cardBg}
+                  >
+                    <SearchIcon boxSize={10} color={secondaryTextColor} mb={2} />
+                    <Text color={secondaryTextColor} fontSize="sm" fontWeight="500">
+                      Start searching
+                    </Text>
+                    <Text color={secondaryTextColor} fontSize="xs" mt={1}>
+                      Enter a name or email to find users
+                    </Text>
+                  </Box>
+                )}
+              </Box>
+            </VStack>
           </DrawerBody>
-          <DrawerFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
-              Cancel
+          
+          <DrawerFooter
+            borderTopWidth="1px"
+            borderTopColor={headerBorderColor}
+            pt={4}
+          >
+            <Button
+              colorScheme="brand"
+              onClick={() => {
+                onClose();
+                setSearchResult([]);
+                setSearch('');
+              }}
+              w="full"
+              size="lg"
+              fontWeight="600"
+            >
+              Close
             </Button>
           </DrawerFooter>
         </DrawerContent>

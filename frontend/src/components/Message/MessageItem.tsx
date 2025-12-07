@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import styles from './../Chat/chat.module.css';
 import { chatState } from '../../Context/ChatProvider';
 import {
@@ -9,14 +10,16 @@ import {
   getMessageTime,
 } from '../../config/chatLogics';
 import ProfileModel from '../miscellaneous/ProfileModel';
-import { Avatar, Box, Tooltip } from '@chakra-ui/react';
+import { Avatar, Box, Tooltip, useToast } from '@chakra-ui/react';
 import colors from '../../utils/colors';
 import { franc } from 'franc';
+import { Message } from '../../types/interfaces';
 
-function getBackgroundColor(user: any) {
+function getBackgroundColor(userName: string | undefined): string {
+  if (!userName) return colors[0];
   const index =
     Math.abs(
-      user.split('').reduce((acc: any, val: any) => acc + val.charCodeAt(0), 0)
+      userName.split('').reduce((acc: number, val: string) => acc + val.charCodeAt(0), 0)
     ) % colors.length;
   return colors[index];
 }
@@ -44,81 +47,187 @@ const getDateFormatted = (date: string): string => {
   return timeElapsed + ' ago';
 };
 
-function MessageItem({ message, messages, index }: any) {
+interface MessageItemProps {
+  message: Message;
+  messages: Message[];
+  index: number;
+}
+
+function MessageItemComponent({ message, messages, index }: MessageItemProps) {
   const { user, selectedChat } = chatState();
+  const toast = useToast();
+  const [isCopied, setIsCopied] = useState(false);
+  
+  // Early return if message is invalid
+  if (!message || !message.sender) {
+    return null;
+  }
+  
+  const isSender = user.id === message.sender.id;
+  const showAvatar = ((isSameSender(messages, message, index, user.id) &&
+    selectedChat.isGroup) ||
+    (isLastMessage(messages, index, user.id) && selectedChat.isGroup));
+  const marginLeft = isSameSenderMargin(messages, message, index, user.id, selectedChat.isGroup);
+  const isSameUserMsg = isSameUser(messages, message, index);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setIsCopied(true);
+      toast({
+        title: 'Copied!',
+        status: 'success',
+        duration: 1500,
+        isClosable: false,
+        position: 'bottom',
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: 'Failed to copy',
+        status: 'error',
+        duration: 2000,
+        isClosable: true,
+        position: 'bottom',
+      });
+    }
+  };
+  
   return (
     <Box
       className={`${styles.message} ${
-        user.id === message.sender.id ? styles.sender : styles.receiver
-      }  }`}
+        isSender ? styles.sender : styles.receiver
+      }`}
+      display="flex"
+      alignItems="flex-end"
+      w="100%"
+      minH="auto"
+      overflow="visible"
+      mb={isSameUserMsg ? '2px' : '8px'}
+      sx={{
+        '&:last-child': {
+          mb: 0,
+        },
+      }}
     >
-      {((isSameSender(messages, message, index, user.id) &&
-        selectedChat.isGroup) ||
-        (isLastMessage(messages, index, user.id) && selectedChat.isGroup)) && (
-        <ProfileModel userInfo={message.sender}>
-          <Tooltip
-            label={message.sender.name}
-            placement="bottom-start"
-            hasArrow
-          >
-            <Avatar
-              mr="1"
-              cursor="pointer"
-              name={message.sender.name}
-              src={message.sender.photo}
-              size="sm"
-              mt="0"
-              position="relative"
-              top="12px"
-            />
-          </Tooltip>
-        </ProfileModel>
+      {/* Avatar for group chats - only on left side for receiver messages */}
+      {!isSender && showAvatar && (
+        <Box
+          flexShrink={0}
+          mr={2}
+          mb="2px"
+          alignSelf="flex-end"
+          w="32px"
+          h="32px"
+          position="relative"
+          overflow="visible"
+        >
+          <ProfileModel userInfo={message.sender}>
+            <Tooltip
+              label={message.sender?.name || 'Unknown'}
+              placement="bottom-start"
+              hasArrow
+            >
+              <Avatar
+                cursor="pointer"
+                name={message.sender?.name || 'Unknown'}
+                src={message.sender?.photo}
+                size="sm"
+                border="2px solid"
+                borderColor="transparent"
+                _hover={{ borderColor: 'brand.400' }}
+                transition="all 0.2s"
+                w="32px"
+                h="32px"
+                flexShrink={0}
+              />
+            </Tooltip>
+          </ProfileModel>
+        </Box>
       )}
 
+      {/* Message Content */}
       <Box
         className={`${styles.content} ${
-          user.id === message.sender.id ? styles.sender : styles.receiver
-        }  }`}
+          isSender ? styles.sender : styles.receiver
+        } ${isCopied ? styles.copied : ''}`}
         pos="relative"
-        ml={`${isSameSenderMargin(
-          messages,
-          message,
-          index,
-          user.id,
-          selectedChat.isGroup
-        )}px`}
-        mt={isSameUser(messages, message, index) ? '1px' : '10px'}
+        ml={!isSender ? `${marginLeft}px` : '0'}
+        mr={isSender ? '0' : '0'}
+        maxW={{ base: '75%', md: '70%', lg: '65%' }}
+        minW="60px"
+        flexShrink={0}
+        overflow="visible"
+        w="fit-content"
+        cursor="pointer"
+        onClick={handleCopy}
+        title="Click to copy"
+        transition="all 0.2s ease"
+        _active={{
+          transform: 'scale(0.98)',
+        }}
       >
+        {/* Sender name for group chats */}
         {showSenderName(messages, message, index, user.id) &&
-          selectedChat.isGroup && (
-            <span
-              style={{ color: `${getBackgroundColor(message.sender.name)}` }}
+          selectedChat.isGroup && message.sender && (
+            <Box
+              mb={1}
+              fontSize="xs"
+              fontWeight="600"
+              color={getBackgroundColor(message.sender?.name)}
+              lineHeight="1.2"
             >
-              {message.sender.name}
-            </span>
+              {message.sender?.name || 'Unknown'}
+            </Box>
           )}
+        
+        {/* Message content */}
         <Box
-          display={'flex'}
-          gap="3px"
-          justifyContent={'flex-end'}
-          alignItems={'end'}
-          flexWrap={'wrap'}
+          w="100%"
+          display="flex"
+          flexDirection="column"
+          gap="2px"
         >
-          <span
-            style={{
-              wordBreak: 'break-all',
-              direction: `${franc(message.content) === 'arb' ? 'rtl' : 'ltr'}`,
-            }}
+          <Box
+            as="span"
+            wordBreak="break-word"
+            overflowWrap="break-word"
+            whiteSpace="pre-wrap"
+            direction={message.content && franc(message.content) === 'arb' ? 'rtl' : 'ltr'}
+            lineHeight="1.4"
           >
             {message.content}
-          </span>
-          <span style={{ fontSize: ' 12px', position: 'relative', top: '5px' }}>
+          </Box>
+          {/* Time below message - Telegram style */}
+          <Box
+            as="span"
+            fontSize="11px"
+            opacity={0.6}
+            whiteSpace="nowrap"
+            alignSelf={isSender ? 'flex-end' : 'flex-start'}
+            mt="2px"
+          >
             {getMessageTime(new Date(message.createdAt))}
-          </span>
+          </Box>
         </Box>
       </Box>
     </Box>
   );
 }
+
+MessageItemComponent.displayName = 'MessageItem';
+
+// Custom comparison function for React.memo to prevent unnecessary re-renders
+const areEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps) => {
+  return (
+    prevProps.message.id === nextProps.message.id &&
+    prevProps.message.content === nextProps.message.content &&
+    prevProps.message.sender?.id === nextProps.message.sender?.id &&
+    prevProps.index === nextProps.index &&
+    prevProps.messages.length === nextProps.messages.length
+  );
+};
+
+const MessageItem = React.memo(MessageItemComponent, areEqual);
 
 export default MessageItem;

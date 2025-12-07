@@ -1,6 +1,16 @@
-import { Box } from '@chakra-ui/react';
+import { Box, useColorModeValue } from '@chakra-ui/react';
 import { chatState } from '../../Context/ChatProvider';
 import SingleChat from './SingleChat';
+
+interface ChatBoxProps {
+  fetchAgain: boolean;
+  setFetchAgain: React.Dispatch<React.SetStateAction<boolean>>;
+  color: string;
+  bg: string;
+  fetchNotificationsAgain: boolean;
+  setFetchNotificationsAgain: React.Dispatch<React.SetStateAction<boolean>>;
+  display?: any;
+}
 
 function ChatBox({
   fetchAgain,
@@ -9,24 +19,21 @@ function ChatBox({
   bg,
   fetchNotificationsAgain,
   setFetchNotificationsAgain,
-  socket,
-  socketConnected,
-}: any) {
+  display,
+}: ChatBoxProps) {
   const { selectedChat } = chatState();
 
   return (
     <Box
-      display={{
+      display={display || {
         base: selectedChat.users.length ? 'flex' : 'none',
         md: 'flex',
       }}
-      alignItems="center"
       flexDir="column"
-      p="8px 8px 5px"
-      bg={bg}
-      w={{ base: '100%', md: '68%' }}
-      borderRadius="lg"
-      borderWidth="1px"
+      bg={useColorModeValue('white', 'gray.800')}
+      w="100%"
+      h="100%"
+      overflow="hidden"
     >
       <SingleChat
         color={color}
@@ -35,8 +42,6 @@ function ChatBox({
         setFetchAgain={setFetchAgain}
         fetchNotificationsAgain={fetchNotificationsAgain}
         setFetchNotificationsAgain={setFetchNotificationsAgain}
-        socket={socket}
-        socketConnected={socketConnected}
       />
     </Box>
   );

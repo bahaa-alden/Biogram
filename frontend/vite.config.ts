@@ -18,16 +18,35 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,ttf}'],
+        // Fix warning about index.html revisioning
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
       },
       devOptions: { enabled: true },
       manifest: {
         name: 'Biogram chat-app',
         short_name: 'Biogram',
-        start_url: '.',
+        start_url: '/',
         display: 'standalone',
-        background_color: '#ffffff',
-        description: 'Chat app built with react',
-        theme_color: '#ffffff',
+        background_color: '#1a9fff',
+        description: 'Modern real-time chat application',
+        theme_color: '#1a9fff',
         icons: [
           {
             src: 'pwa-192x192.png',

@@ -5,8 +5,6 @@
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
-
-
 # Local History for Visual Studio Code
 .cache/
 .history/
@@ -14,4 +12,42 @@ node_modules/
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Build outputs
+backend/build/
+backend/config/
+frontend/dist/
+frontend/dev-dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp

@@ -6,88 +6,50 @@ import {
   Button,
   useColorModeValue,
 } from '@chakra-ui/react';
-import { useReducer, useState, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@chakra-ui/react';
-import axios from 'axios';
+import { useReducer } from 'react';
 import {
   InputAction,
   authState,
   InputActionKind,
   initialState,
 } from '../../types/auth';
-import Cookies from 'js-cookie';
-import { chatState } from '../../Context/ChatProvider';
-import { storage } from '../../utils/storage';
+import { useLogin } from '../../hooks/mutations/useAuthMutations';
 
-function reducer(state: authState, action: InputAction) {
+function reducer(state: authState, action: InputAction): authState {
   switch (action.type) {
     case InputActionKind.CHANGE_EMAIL:
-      return { ...state, email: action.payload };
+      return { ...state, email: action.payload as string };
     case InputActionKind.CHANGE_PASSWORD:
-      return { ...state, password: action.payload };
+      return { ...state, password: action.payload as string };
     default:
-      throw new Error();
+      return state;
   }
 }
 
-function Login({ bg, bgS }: any) {
+interface LoginProps {
+  bg: string;
+  bgS: string;
+}
+
+function Login({ bg, bgS }: LoginProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [loading, setLoading] = useState(false);
-  const toast = useToast();
-  const navigate = useNavigate();
-  const { setUser } = chatState();
+  const loginMutation = useLogin();
 
-  const submitHandler = async (e: FormEvent) => {
+  const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-
-      const res = await axios({
-        method: 'POST',
-        url: '/api/v1/users/login',
-        data: {
-          email: state.email.trim(),
-          password: state.password.trim(),
-        },
-      });
-
-      if (res.data.status === 'success') {
-        toast({
-          title: 'Logged in',
-          description: ' you are Logged in now',
-          status: 'success',
-          duration: 1500,
-          isClosable: true,
-          position: 'bottom',
-        });
-        const userInfo = res.data.data.user;
-        storage.storeToken(res.data.token);
-        setUser(userInfo);
-        setTimeout(function () {
-          navigate('/chats');
-          setLoading(false);
-        }, 100);
-      }
-    } catch (err: any) {
-      toast({
-        status: 'error',
-        title: 'Error',
-        description: err.response.data.message,
-        duration: 2500,
-        isClosable: true,
-        position: 'bottom',
-      });
-      setLoading(false);
-    }
+    loginMutation.mutate({
+      email: state.email.trim(),
+      password: state.password.trim(),
+    });
   };
 
   return (
-    <form onSubmit={submitHandler}>
+    <form onSubmit={submitHandler} aria-label="Login form">
       <VStack bg={bg} spacing="5px">
         <FormControl id="email" isRequired>
-          <FormLabel>Email</FormLabel>
+          <FormLabel htmlFor="email">Email</FormLabel>
           <Input
+            id="email"
             placeholder="Enter Your Email"
             type={'email'}
             value={state.email}
@@ -97,12 +59,16 @@ function Login({ bg, bgS }: any) {
                 payload: e.target.value,
               });
             }}
+            aria-label="Email input"
+            aria-required="true"
           />
         </FormControl>
         <FormControl id="password" isRequired>
-          <FormLabel>Password</FormLabel>
+          <FormLabel htmlFor="password">Password</FormLabel>
           <Input
+            id="password"
             placeholder="Enter Your Password"
+            type={'password'}
             value={state.password}
             onChange={(e) => {
               dispatch({
@@ -110,18 +76,21 @@ function Login({ bg, bgS }: any) {
                 payload: e.target.value,
               });
             }}
-            type="password"
+            aria-label="Password input"
+            aria-required="true"
           />
         </FormControl>
         <Button
-          colorScheme="blue"
           bg={bgS}
-          width={'100%'}
-          style={{ marginTop: '15px', marginBottom: '5px' }}
-          isLoading={loading}
+          color="white"
+          width="100%"
+          style={{ marginTop: 15 }}
           type="submit"
+          isLoading={loginMutation.isPending}
+          loadingText="Logging in..."
+          aria-label="Submit login form"
         >
-          Log in
+          Login
         </Button>
       </VStack>
     </form>

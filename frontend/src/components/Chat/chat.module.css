@@ -1,25 +1,147 @@
-
 .message {
   display: flex;
   width: 100%;
-  margin: 2px 0;
   align-items: flex-end;
+  padding: 0 8px;
+  min-height: auto;
+  overflow: visible;
+  position: relative;
 }
+
 .sender {
   justify-content: flex-end;
 }
+
 .receiver {
   justify-content: flex-start;
 }
+
 .content {
-  border-radius: 10px;
-  padding: 5px 8px;
+  border-radius: 12px;
+  padding: 6px 10px;
   max-width: 70%;
-  color: white;
+  min-width: 60px;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  line-height: 1.4;
+  font-size: 15px;
+  position: relative;
+  overflow: visible;
+  contain: layout style;
 }
+
+.content:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Prevent layout shifts and image cutoffs */
+.message {
+  will-change: auto;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  contain: layout style;
+  overflow: visible;
+}
+
+/* Ensure avatars don't get cut off */
+.message .chakra-avatar {
+  overflow: visible !important;
+  flex-shrink: 0;
+}
+
+/* Prevent content overflow */
+.content {
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+
+/* Smooth transitions for new messages */
+.message {
+  animation: messageFadeIn 0.2s ease-out;
+}
+
+@keyframes messageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .sender .content {
-  background: rgb(3, 75, 123);
+  background: linear-gradient(135deg, #1a9fff 0%, #0077dd 100%);
+  color: #ffffff;
+  border-bottom-right-radius: 6px;
 }
+
 .receiver .content {
-  background: rgb(1 12 20);
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  color: #f9fafb;
+  border-bottom-left-radius: 6px;
+}
+
+/* Light mode adjustments for better contrast */
+[data-theme="light"] .receiver .content,
+.light .receiver .content {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  color: #111827;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .content {
+    max-width: 65%;
+    padding: 7px 12px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+  
+  .message {
+    padding: 0 12px;
+    margin: 3px 0;
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1025px) {
+  .content {
+    max-width: 60%;
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 12px;
+    line-height: 1.4;
+  }
+  
+  .message {
+    padding: 0 16px;
+    margin: 4px 0;
+  }
+  
+  .content span {
+    font-size: 16px;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .content {
+    max-width: 85%;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+  
+  .message {
+    padding: 0 4px;
+    margin: 2px 0;
+  }
 }
