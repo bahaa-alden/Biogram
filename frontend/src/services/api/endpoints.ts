@@ -37,6 +37,7 @@ export const API_ENDPOINTS = {
   // Notifications
   GET_NOTIFICATIONS: (userId: string) => `/users/${userId}/notifications`,
   MARK_NOTIFICATION_READ: (chatId: string) => `/chats/${chatId}/notifications/read`,
+  MARK_NOTIFICATIONS_READ_BY_IDS: (userId: string) => `/users/${userId}/notifications/markRead`,
   GET_NOTIFICATION: (userId: string, notificationId: string) => `/users/${userId}/notifications/${notificationId}`,
   UPDATE_NOTIFICATION: (userId: string, notificationId: string) => `/users/${userId}/notifications/${notificationId}`,
   DELETE_NOTIFICATION: (userId: string, notificationId: string) => `/users/${userId}/notifications/${notificationId}`,

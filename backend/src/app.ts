@@ -1,4 +1,5 @@
 ﻿import { settings } from '@config/settings';
+import swaggerSpec from '@config/swagger';
 import { globalErrorHandler, notFound } from '@middlewares/error.middleware';
 import JWTStrategy from '@middlewares/passport.config';
 import routes from '@routes/index.routes';
@@ -19,6 +20,7 @@ import hpp from 'hpp';
 import morgan from 'morgan';
 import passport from 'passport';
 import path from 'path';
+import swaggerUi from 'swagger-ui-express';
 
 const app: express.Application = express();
 
@@ -73,6 +75,23 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     new Date().toISOString();
   next();
 });
+
+// Swagger Documentation
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Biogram API Documentation',
+    customfavIcon: '/favicon.ico',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      filter: true,
+      tryItOutEnabled: true,
+    },
+  })
+);
 
 //Routes
 app.use(routes);

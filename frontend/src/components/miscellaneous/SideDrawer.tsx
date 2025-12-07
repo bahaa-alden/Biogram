@@ -97,6 +97,38 @@ function SideDrawer({
     fetchNotifications();
   }, [fetchNotificationsAgain]);
 
+  const handleMarkAllAsRead = async () => {
+    if (!user?.id || !notification.length) return;
+    
+    try {
+      const notificationIds = notification
+        .map((notif) => notif.id || notif._id)
+        .filter((id): id is string => !!id);
+      
+      if (notificationIds.length === 0) return;
+      
+      await notificationService.markNotificationsReadByIds(user.id, notificationIds);
+      
+      toast({
+        title: 'All notifications marked as read',
+        status: 'success',
+        duration: 2000,
+        position: 'bottom',
+      });
+      
+      // Refresh notifications
+      setFetchNotificationsAgain(!fetchNotificationsAgain);
+    } catch (error: any) {
+      toast({
+        title: 'Failed to mark notifications as read',
+        description: error.response?.data?.message || 'An error occurred',
+        status: 'error',
+        duration: 3000,
+        position: 'bottom',
+      });
+    }
+  };
+
   const logoutHandler = () => {
     storage.clearToken();
     toast({
@@ -297,9 +329,24 @@ function SideDrawer({
               borderColor={headerBorderColor}
             >
               <Box px={4} py={2} borderBottom="1px solid" borderColor={headerBorderColor}>
-                <Text fontWeight="700" fontSize="md" color={textColor}>
-                  Notifications
-                </Text>
+                <HStack justify="space-between" align="center" mb={1}>
+                  <Text fontWeight="700" fontSize="md" color={textColor}>
+                    Notifications
+                  </Text>
+                  {notification.length > 0 && (
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      colorScheme="blue"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAllAsRead();
+                      }}
+                    >
+                      Mark all read
+                    </Button>
+                  )}
+                </HStack>
                 <Text fontSize="xs" color={secondaryTextColor}>
                   {notification.length} unread messages
                 </Text>

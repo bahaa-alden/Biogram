@@ -241,3 +241,14 @@ export const markNotificationReadSchema = {
     chatId: mongoIdSchema,
   }),
 };
+
+export const markNotificationsReadByIdsSchema = {
+  params: z.object({
+    userId: mongoIdSchema,
+  }),
+  body: z.object({
+    notificationIds: z
+      .array(mongoIdSchema)
+      .min(1, 'At least one notification ID is required'),
+  }),
+};

@@ -13,6 +13,13 @@ export const notificationService = {
     return response.data;
   },
 
+  markNotificationsReadByIds: async (userId: string, notificationIds: string[]): Promise<ApiResponse<{ modifiedCount: number }>> => {
+    const response = await apiClient.patch(API_ENDPOINTS.MARK_NOTIFICATIONS_READ_BY_IDS(userId), {
+      notificationIds,
+    });
+    return response.data;
+  },
+
   getNotification: async (userId: string, notificationId: string): Promise<ApiResponse<{ data: Notification }>> => {
     const response = await apiClient.get(API_ENDPOINTS.GET_NOTIFICATION(userId, notificationId));
     return response.data;
