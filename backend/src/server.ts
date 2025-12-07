@@ -14,16 +14,19 @@ const server = app.listen(port, () =>
   console.log(`Example app listening on port ${port}!`)
 );
 
+// CORS configuration for Socket.IO - use settings.FRONTEND_URL for all origins
+const socketCorsOptions = {
+  origin: settings.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
 // Initialize Socket.IO directly in server.ts
 const io = new Server(server, {
   pingTimeout: 60000,
   pingInterval: 25000,
-  cors: {
-    origin: settings.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  },
+  cors: socketCorsOptions,
   transports: ['polling', 'websocket'],
   allowEIO3: true,
   allowUpgrades: true,

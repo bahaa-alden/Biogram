@@ -21,16 +21,18 @@ import passport from 'passport';
 import path from 'path';
 
 const app: express.Application = express();
+
+// CORS configuration - use settings.FRONTEND_URL for all origins
+const corsOptions = {
+  origin: settings.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
 //middlewares
-app.use(
-  cors({
-    origin: settings.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
-app.options('*', cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(helmet());
 if (settings.NODE_ENV === 'development') {
