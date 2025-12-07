@@ -34,7 +34,7 @@ export const chatService = {
   },
 
   renameGroup: async (chatId: string, chatName: string): Promise<ApiResponse<{ data: Chat }>> => {
-    const response = await apiClient.patch(API_ENDPOINTS.RENAME_GROUP, { chatId, chatName });
+    const response = await apiClient.patch(API_ENDPOINTS.RENAME_GROUP, { chatId, name: chatName });
     return response.data;
   },
 
