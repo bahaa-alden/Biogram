@@ -46,7 +46,7 @@ function ProfileModel({ userInfo, children }: any) {
         isClosable: true,
         position: 'top',
       });
-      setUser(response.data.user);
+      setUser(response.data.data);
     }
   };
   useEffect(() => {

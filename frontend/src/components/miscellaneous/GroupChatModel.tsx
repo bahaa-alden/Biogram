@@ -40,7 +40,7 @@ function GroupChatModel({ children, socket }: any) {
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
-  const [searchResult, setSearchResult] = useState([]);
+  const [searchResult, setSearchResult] = useState<User[]>([]);
   const [isClicked, setIsClicked] = useState<number>();
   const [loadingChat, setLoadingChat] = useState(false);
 
@@ -119,7 +119,7 @@ function GroupChatModel({ children, socket }: any) {
     try {
       setLoading(true);
       const response = await chatService.createGroupChat({ 
-        users: selectedUsers.map((u) => u.id), 
+        users: selectedUsers.map((u) => u.id).filter((id): id is string => id !== undefined), 
         name: groupName.trim() 
       });
       const data = response.data.data;

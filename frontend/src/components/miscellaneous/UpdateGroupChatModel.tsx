@@ -46,7 +46,7 @@ function UpdateGroupChatModel({
     selectedChat?.users || []
   );
   const [search, setSearch] = useState('');
-  const [searchResult, setSearchResult] = useState([]);
+  const [searchResult, setSearchResult] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [renameLoading, setRenameLoading] = useState(false);
   const [isClicked, setIsClicked] = useState<number>();
@@ -87,7 +87,7 @@ function UpdateGroupChatModel({
     try {
       setLoading(true);
 
-      if (!selectedChat?.id) return;
+      if (!selectedChat?.id || !userInfo?.id) return;
       const response = await chatService.addToGroup(selectedChat.id, userInfo.id);
       const data = response.data.data;
       if (response.status === 'success') {
@@ -233,7 +233,7 @@ function UpdateGroupChatModel({
   const handleRemove = async (userInfo: User) => {
     try {
       setLoading(true);
-      if (!selectedChat?.id) return;
+      if (!selectedChat?.id || !userInfo?.id) return;
       const response = await chatService.removeFromGroup(selectedChat.id, userInfo.id);
       const data = response.data.data;
       if (response.status === 'success') {
