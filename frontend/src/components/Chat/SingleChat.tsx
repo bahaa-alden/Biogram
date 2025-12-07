@@ -780,12 +780,27 @@ function SingleChat({
 
     const messageListener = (newMessageReceived: Message) => {
       // Validate message has required properties
-      if (!newMessageReceived || !newMessageReceived.createdAt) {
-        console.error('[SingleChat] Invalid message received:', newMessageReceived);
+      if (!newMessageReceived || typeof newMessageReceived !== 'object') {
+        console.error('[SingleChat] Invalid message received (not an object):', newMessageReceived);
+        return;
+      }
+      if (!newMessageReceived.createdAt) {
+        console.error('[SingleChat] Invalid message received (missing createdAt):', newMessageReceived);
+        return;
+      }
+      if (!newMessageReceived.id && !newMessageReceived._id) {
+        console.error('[SingleChat] Invalid message received (missing id):', newMessageReceived);
         return;
       }
       
-      if (!selectedChatCompare?.id || selectedChatCompare.id !== newMessageReceived.chat?.id) {
+      // Normalize message structure to ensure consistency
+      const normalizedMessage: Message = {
+        ...newMessageReceived,
+        id: newMessageReceived.id || newMessageReceived._id,
+        createdAt: newMessageReceived.createdAt,
+      };
+      
+      if (!selectedChatCompare?.id || selectedChatCompare.id !== normalizedMessage.chat?.id) {
         setFetchAgain(!fetchAgain);
         setFetchNotificationsAgain(!fetchNotificationsAgain);
       } else {
@@ -808,8 +823,9 @@ function SingleChat({
           }
           
           // Check if message already exists to prevent duplicates
-          const newMsgId = newMessageReceived.id || newMessageReceived._id;
+          const newMsgId = normalizedMessage.id || normalizedMessage._id;
           const messageExists = messagesArray.some((msg: Message) => {
+            if (!msg || typeof msg !== 'object') return false;
             const msgId = msg.id || msg._id;
             return msgId && newMsgId && msgId === newMsgId;
           });
@@ -819,7 +835,7 @@ function SingleChat({
           }
           
           // Add new message
-          const updatedMessages = [...messagesArray, newMessageReceived];
+          const updatedMessages = [...messagesArray, normalizedMessage];
           
           // Update the last page with the correct structure
           if (Array.isArray(lastPage)) {

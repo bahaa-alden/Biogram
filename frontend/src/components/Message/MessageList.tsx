@@ -33,19 +33,33 @@ function MessageList({
   const newMessagesTextColor = useColorModeValue('blue.500', 'blue.300');
   const newMessagesBg = useColorModeValue('blue.50', 'blue.900');
   
-  const groupedMessages = messages.reduce((groups: any, message: Message) => {
+  const groupedMessages = messages.reduce((groups: any, message: Message, index: number) => {
     // Strict validation: ensure message is valid before processing
-    if (!message || typeof message !== 'object') return groups;
-    if (!message.createdAt || (!message.id && !message._id)) return groups;
+    if (!message || typeof message !== 'object') {
+      console.warn(`[MessageList] Invalid message at index ${index}:`, message);
+      return groups;
+    }
+    if (!message.createdAt) {
+      console.warn(`[MessageList] Message missing createdAt at index ${index}:`, message);
+      return groups;
+    }
+    if (!message.id && !message._id) {
+      console.warn(`[MessageList] Message missing id at index ${index}:`, message);
+      return groups;
+    }
     try {
       const date = moment(message.createdAt).format('YYYY-MM-DD');
-      if (!date || date === 'Invalid date') return groups;
+      if (!date || date === 'Invalid date') {
+        console.warn(`[MessageList] Invalid date for message at index ${index}:`, message.createdAt);
+        return groups;
+      }
       if (!groups[date]) {
         groups[date] = [];
       }
       groups[date].push(message);
     } catch (error) {
       // Skip invalid dates
+      console.error(`[MessageList] Error processing message at index ${index}:`, error, message);
       return groups;
     }
     return groups;
@@ -174,7 +188,16 @@ function MessageList({
       )}
       
       {Object.entries(groupedMessages)
-        .filter(([date, messages]: any) => date && Array.isArray(messages) && messages.length > 0)
+        .filter(([date, messages]: any) => {
+          // Validate entry before processing
+          if (!date || typeof date !== 'string') return false;
+          if (!Array.isArray(messages)) return false;
+          if (messages.length === 0) return false;
+          // Ensure all messages in the array are valid
+          return messages.every((msg: Message) => 
+            msg && typeof msg === 'object' && msg.createdAt && (msg.id || msg._id)
+          );
+        })
         .map(([date, messages]: any) => (
         <Box 
           key={date} 

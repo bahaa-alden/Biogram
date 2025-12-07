@@ -91,13 +91,34 @@ export const useSocket = (user: User | undefined) => {
 
       const handleMessageReceived = (newMessageReceived: Message) => {
         // Validate message has required properties
-        if (!newMessageReceived || !newMessageReceived.createdAt) {
+        if (!newMessageReceived || typeof newMessageReceived !== 'object') {
           console.error(
-            '[useSocket] Invalid message received:',
+            '[useSocket] Invalid message received (not an object):',
             newMessageReceived
           );
           return;
         }
+        if (!newMessageReceived.createdAt) {
+          console.error(
+            '[useSocket] Invalid message received (missing createdAt):',
+            newMessageReceived
+          );
+          return;
+        }
+        if (!newMessageReceived.id && !newMessageReceived._id) {
+          console.error(
+            '[useSocket] Invalid message received (missing id):',
+            newMessageReceived
+          );
+          return;
+        }
+
+        // Normalize message structure to ensure consistency
+        const normalizedMessage: Message = {
+          ...newMessageReceived,
+          id: newMessageReceived.id || newMessageReceived._id,
+          createdAt: newMessageReceived.createdAt,
+        };
 
         const chatId =
           newMessageReceived.chat?.id || newMessageReceived.chat?._id;
@@ -106,7 +127,7 @@ export const useSocket = (user: User | undefined) => {
             // If no cache exists, create initial structure
             if (!old) {
               return {
-                pages: [{ messages: [newMessageReceived], currentPage: 1 }],
+                pages: [{ messages: [normalizedMessage], currentPage: 1 }],
                 pageParams: [1],
               };
             }
@@ -135,10 +156,11 @@ export const useSocket = (user: User | undefined) => {
               return old;
             }
 
-            const newMsgId = newMessageReceived.id || newMessageReceived._id;
+            const newMsgId = normalizedMessage.id || normalizedMessage._id;
 
             // Check if message already exists by ID (real message, not temp)
             const realMessageExists = messagesArray.some((msg: Message) => {
+              if (!msg || typeof msg !== 'object') return false;
               const msgId = msg.id || msg._id;
               return (
                 msgId &&
@@ -156,18 +178,22 @@ export const useSocket = (user: User | undefined) => {
             // Check if there's a temp message with same content to replace
             const hasTempMessage = messagesArray.some(
               (msg: Message) =>
+                msg &&
+                typeof msg === 'object' &&
                 msg.id?.startsWith('temp-') &&
-                msg.content === newMessageReceived.content
+                msg.content === normalizedMessage.content
             );
 
             if (hasTempMessage) {
               // Replace temp message with real one
               const updatedMessages = messagesArray.map((msg: Message) => {
                 if (
+                  msg &&
+                  typeof msg === 'object' &&
                   msg.id?.startsWith('temp-') &&
-                  msg.content === newMessageReceived.content
+                  msg.content === normalizedMessage.content
                 ) {
-                  return newMessageReceived;
+                  return normalizedMessage;
                 }
                 return msg;
               });
@@ -186,7 +212,7 @@ export const useSocket = (user: User | undefined) => {
               }
             } else {
               // No temp message, add new message
-              const updatedMessages = [...messagesArray, newMessageReceived];
+              const updatedMessages = [...messagesArray, normalizedMessage];
 
               // Update the last page with the correct structure
               if (Array.isArray(lastPage)) {
