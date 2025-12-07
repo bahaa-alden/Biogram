@@ -3,12 +3,13 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import { settings } from './settings';
 
 // Determine the source directory - always point to src, not build
-// If running from build/config, go up to src/config, then to src
+// In Docker, src is copied alongside build, so we can access it
+// If running from build/config, go up to root, then to src
 const isBuilt = __dirname.includes('build');
 const srcDir = isBuilt
   ? path.join(__dirname, '..', '..', 'src')
   : path.join(__dirname, '..');
-const routesPath = path.join(srcDir, 'ro{at,js}es');
+const routesPath = path.join(srcDir, 'routes');
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -290,7 +291,7 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: [`${routesPath}/*.{ts,js}`, `${srcDir}/app.{ts,js}`, `${srcDir}/routes/**/*.{ts,js}`],
+  apis: [`${routesPath}/*.ts`, `${srcDir}/app.ts`],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

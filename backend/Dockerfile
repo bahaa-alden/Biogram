@@ -29,6 +29,9 @@ RUN yarn install --production --frozen-lockfile || npm ci --only=production
 # Copy built files from builder
 COPY --from=builder /app/build ./build
 
+# Copy source files for Swagger documentation (swagger-jsdoc needs source files with JSDoc comments)
+COPY --from=builder /app/src ./src
+
 # Copy public directory if it exists
 COPY --from=builder /app/public ./public
 
