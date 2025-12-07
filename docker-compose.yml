@@ -13,6 +13,9 @@ services:
       - .env
     volumes:
       - ./backend/public:/app/public
+      - ./mongo-certs/mongo.pem:/etc/mongo/certs/mongo.pem:ro
+      - ./mongo-certs/ca.crt:/etc/mongo/certs/ca.crt:ro
+
 
   frontend:
     build:
