@@ -134,9 +134,29 @@ function SideDrawer({
     try {
       setLoadingChat(true);
       const response = await chatService.createChat({ userId: userInfo.id });
-      const data = response.data.data;
+      
+      // Handle both response structures from backend:
+      // - New chat (201): { status: 'success', data: chat }
+      // - Existing chat (200): { data: chat }
+      // chatService.createChat returns response.data from axios, which could be either structure
+      let chatData: any;
+      
+      // Check if response has status field (new chat)
+      if (response.status === 'success' && response.data) {
+        // New chat: { status: 'success', data: chat }
+        chatData = response.data;
+      } else if (response.data) {
+        // Existing chat: { data: chat }
+        chatData = response.data;
+      } else {
+        throw new Error('Invalid chat data received');
+      }
 
-      if (data.id === selectedChat?.id) {
+      if (!chatData || !chatData.id) {
+        throw new Error('Invalid chat data: missing id');
+      }
+
+      if (chatData.id === selectedChat?.id) {
         setLoadingChat(false);
         return;
       }
@@ -145,23 +165,25 @@ function SideDrawer({
       queryClient.invalidateQueries({ queryKey: ['chats'] });
       
       // Set the selected chat directly (no intermediate empty state)
-      setSelectedChat(data);
+      setSelectedChat(chatData);
       
       onClose();
       setSearchResult([]);
       setSearch('');
     } catch (err: any) {
+      console.error('Error creating/accessing chat:', err);
       toast({
         title: 'Error fetching the chat',
-        description: err.response?.data?.message || 'An error occurred',
+        description: err.response?.data?.message || err.message || 'An error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
         position: 'bottom-left',
       });
+    } finally {
+      setIsClicked(-1);
+      setLoadingChat(false);
     }
-    setIsClicked(-1);
-    setLoadingChat(false);
   };
 
   useEffect(() => {
