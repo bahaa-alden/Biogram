@@ -34,7 +34,9 @@ function MessageList({
   const newMessagesBg = useColorModeValue('blue.50', 'blue.900');
   
   const groupedMessages = messages.reduce((groups: any, message: Message) => {
-    if (!message || !message.createdAt || !message.id) return groups;
+    // Strict validation: ensure message is valid before processing
+    if (!message || typeof message !== 'object') return groups;
+    if (!message.createdAt || (!message.id && !message._id)) return groups;
     try {
       const date = moment(message.createdAt).format('YYYY-MM-DD');
       if (!date || date === 'Invalid date') return groups;
@@ -212,15 +214,25 @@ function MessageList({
             {(() => {
               // Ensure messages is an array and filter out invalid entries
               const validMessages = (Array.isArray(messages) ? messages : [])
-                .filter((msg: Message) => msg && msg.id && msg.createdAt);
+                .filter((msg: Message) => {
+                  // Strict validation
+                  if (!msg || typeof msg !== 'object') return false;
+                  if (!msg.id && !msg._id) return false;
+                  if (!msg.createdAt) return false;
+                  return true;
+                });
               
               const sortedMessages = validMessages
                 .filter(
-                  (value: Message, index: number, self: Message[]) =>
-                    value && value.id && index === self.findIndex((t) => t && t.id === value.id)
+                  (value: Message, index: number, self: Message[]) => {
+                    if (!value || typeof value !== 'object') return false;
+                    if (!value.id && !value._id) return false;
+                    return index === self.findIndex((t) => t && (t.id === value.id || t._id === value._id));
+                  }
                 )
                 .sort((a: Message, b: Message) => {
-                  if (!a || !b || !a.createdAt || !b.createdAt) return 0;
+                  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return 0;
+                  if (!a.createdAt || !b.createdAt) return 0;
                   return a.createdAt < b.createdAt ? -1 : 1;
                 });
               
@@ -228,9 +240,16 @@ function MessageList({
               const hasUnreadMessages = lastReadIndex >= 0 && lastReadIndex < sortedMessages.length - 1;
               
               return sortedMessages
-                .filter((msg: Message) => msg && msg.id && msg.createdAt)
+                .filter((msg: Message) => {
+                  if (!msg || typeof msg !== 'object') return false;
+                  if (!msg.id && !msg._id) return false;
+                  if (!msg.createdAt) return false;
+                  return true;
+                })
                 .map((message: Message, index: number) => {
-                  if (!message || !message.id || !message.createdAt) return null;
+                  if (!message || typeof message !== 'object') return null;
+                  if (!message.id && !message._id) return null;
+                  if (!message.createdAt) return null;
                   const isLastRead = message.id === lastReadMessageId && hasUnreadMessages;
                   return (
                     <Box 

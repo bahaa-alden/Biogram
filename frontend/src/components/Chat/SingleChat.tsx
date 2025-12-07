@@ -116,9 +116,21 @@ function SingleChat({
     
     const response = await messageService.getMessages(selectedChat?.id!, { page: pageParam, limit: pageSize });
     const data = response.data.data;
+    
+    // Ensure data is an array and filter out invalid messages
+    const validMessages = Array.isArray(data) 
+      ? data.filter((msg: any) => {
+          // Strict validation
+          if (!msg || typeof msg !== 'object') return false;
+          if (!msg.id && !msg._id) return false;
+          if (!msg.createdAt) return false;
+          return true;
+        })
+      : [];
+    
     return {
-      messages: Array.isArray(data) ? data : [],
-      nextPage: data.length === pageSize ? pageParam + 1 : undefined,
+      messages: validMessages,
+      nextPage: validMessages.length === pageSize ? pageParam + 1 : undefined,
       currentPage: pageParam,
     };
   };
@@ -138,16 +150,29 @@ function SingleChat({
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!selectedChat?.id,
-    staleTime: 1000 * 60 * 5, // 5 minutes - data is fresh for 5 minutes
+    staleTime: 0, // Always consider data stale - refetch on mount to get latest messages
     gcTime: 1000 * 60 * 30, // 30 minutes - keep in cache for 30 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: true, // Refetch when opening a chat to get new messages
+    refetchOnMount: true, // Always refetch when opening a chat to get new messages
   });
 
   // Flatten all pages into single messages array and filter out invalid messages
-  const messages = (data?.pages.flatMap(page => page.messages || []).reverse() || []).filter(
-    (msg: Message) => msg && msg.id && msg.createdAt
-  );
+  const messages = (data?.pages
+    ?.flatMap((page: any) => {
+      // Safely extract messages from page
+      if (!page || typeof page !== 'object') return [];
+      if (Array.isArray(page.messages)) return page.messages;
+      if (Array.isArray(page)) return page; // In case page is directly an array
+      return [];
+    })
+    .reverse() || [])
+    .filter((msg: Message) => {
+      // Strict validation: ensure message is an object with required properties
+      if (!msg || typeof msg !== 'object') return false;
+      if (!msg.id && !msg._id) return false;
+      if (!msg.createdAt) return false;
+      return true;
+    });
   
   // Refetch function for components that need it
   const refetchMessages = useCallback(() => {
@@ -155,13 +180,19 @@ function SingleChat({
   }, [queryClient, selectedChat?.id]);
 
   // Refetch messages when opening a chat to get new messages
+  // This ensures we get any messages that arrived via socket while chat was closed
   const previousChatIdRef = useRef<string | undefined>(selectedChat?.id);
   useEffect(() => {
-    // Only refetch if chat ID changed (switching to a different chat)
-    if (selectedChat?.id && selectedChat.id !== previousChatIdRef.current) {
-      previousChatIdRef.current = selectedChat.id;
-      // Refetch messages to get the latest ones
-      refetch();
+    // Refetch when chat ID changes (switching to a different chat)
+    // Also refetch if chat is opened for the first time
+    if (selectedChat?.id) {
+      const chatChanged = selectedChat.id !== previousChatIdRef.current;
+      if (chatChanged) {
+        previousChatIdRef.current = selectedChat.id;
+        // Always refetch to ensure we have the latest messages
+        // This catches any messages that arrived via socket while chat was closed
+        refetch();
+      }
     }
   }, [selectedChat?.id, refetch]);
 

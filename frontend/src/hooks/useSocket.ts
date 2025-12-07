@@ -94,20 +94,42 @@ export const useSocket = (user: User | undefined) => {
           newMessageReceived.chat?.id || newMessageReceived.chat?._id;
         if (chatId) {
           queryClient.setQueryData(['messages', chatId], (old: any) => {
-            if (!old) return { pages: [[newMessageReceived]], pageParams: [1] };
+            // If no cache exists, create initial structure
+            if (!old) {
+              return {
+                pages: [{ messages: [newMessageReceived], currentPage: 1 }],
+                pageParams: [1],
+              };
+            }
+
             const newPages = [...old.pages];
             const lastPage = newPages[newPages.length - 1];
 
-            // Ensure lastPage is an array
-            if (!Array.isArray(lastPage)) {
-              console.error('[useSocket] lastPage is not an array:', lastPage);
+            // Handle different page structures
+            // fetchMessagesPage returns: { messages: [...], nextPage: ..., currentPage: ... }
+            let messagesArray: Message[] = [];
+            if (Array.isArray(lastPage)) {
+              // If lastPage is directly an array of messages (legacy format)
+              messagesArray = lastPage;
+            } else if (
+              lastPage &&
+              typeof lastPage === 'object' &&
+              Array.isArray(lastPage.messages)
+            ) {
+              // If lastPage has a messages property (current format from fetchMessagesPage)
+              messagesArray = lastPage.messages;
+            } else {
+              console.error(
+                '[useSocket] Unexpected lastPage structure:',
+                lastPage
+              );
               return old;
             }
 
             const newMsgId = newMessageReceived.id || newMessageReceived._id;
 
             // Check if message already exists by ID (real message, not temp)
-            const realMessageExists = lastPage.some((msg: Message) => {
+            const realMessageExists = messagesArray.some((msg: Message) => {
               const msgId = msg.id || msg._id;
               return (
                 msgId &&
@@ -123,7 +145,7 @@ export const useSocket = (user: User | undefined) => {
             }
 
             // Check if there's a temp message with same content to replace
-            const hasTempMessage = lastPage.some(
+            const hasTempMessage = messagesArray.some(
               (msg: Message) =>
                 msg.id?.startsWith('temp-') &&
                 msg.content === newMessageReceived.content
@@ -131,7 +153,7 @@ export const useSocket = (user: User | undefined) => {
 
             if (hasTempMessage) {
               // Replace temp message with real one
-              const updatedLastPage = lastPage.map((msg: Message) => {
+              const updatedMessages = messagesArray.map((msg: Message) => {
                 if (
                   msg.id?.startsWith('temp-') &&
                   msg.content === newMessageReceived.content
@@ -140,10 +162,35 @@ export const useSocket = (user: User | undefined) => {
                 }
                 return msg;
               });
-              newPages[newPages.length - 1] = updatedLastPage;
+
+              // Update the last page with the correct structure
+              if (Array.isArray(lastPage)) {
+                // Legacy format: lastPage is directly an array
+                newPages[newPages.length - 1] = updatedMessages;
+              } else {
+                // Current format: lastPage has messages property
+                newPages[newPages.length - 1] = {
+                  ...lastPage,
+                  messages: updatedMessages,
+                  // Preserve other properties like nextPage, currentPage
+                };
+              }
             } else {
               // No temp message, add new message
-              newPages[newPages.length - 1] = [...lastPage, newMessageReceived];
+              const updatedMessages = [...messagesArray, newMessageReceived];
+
+              // Update the last page with the correct structure
+              if (Array.isArray(lastPage)) {
+                // Legacy format: lastPage is directly an array
+                newPages[newPages.length - 1] = updatedMessages;
+              } else {
+                // Current format: lastPage has messages property
+                newPages[newPages.length - 1] = {
+                  ...lastPage,
+                  messages: updatedMessages,
+                  // Preserve other properties like nextPage, currentPage
+                };
+              }
             }
 
             return { ...old, pages: newPages };
