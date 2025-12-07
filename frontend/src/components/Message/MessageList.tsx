@@ -34,11 +34,18 @@ function MessageList({
   const newMessagesBg = useColorModeValue('blue.50', 'blue.900');
   
   const groupedMessages = messages.reduce((groups: any, message: Message) => {
-    const date = moment(message.createdAt).format('YYYY-MM-DD');
-    if (!groups[date]) {
-      groups[date] = [];
+    if (!message || !message.createdAt || !message.id) return groups;
+    try {
+      const date = moment(message.createdAt).format('YYYY-MM-DD');
+      if (!date || date === 'Invalid date') return groups;
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(message);
+    } catch (error) {
+      // Skip invalid dates
+      return groups;
     }
-    groups[date].push(message);
     return groups;
   }, {});
 
@@ -164,7 +171,9 @@ function MessageList({
         </Box>
       )}
       
-      {Object.entries(groupedMessages).map(([date, messages]: any) => (
+      {Object.entries(groupedMessages)
+        .filter(([date, messages]: any) => date && Array.isArray(messages) && messages.length > 0)
+        .map(([date, messages]: any) => (
         <Box 
           key={date} 
           mb={{ base: 3, md: 4 }}
@@ -201,36 +210,46 @@ function MessageList({
             overflow="visible"
           >
             {(() => {
-              const sortedMessages = messages
+              // Ensure messages is an array and filter out invalid entries
+              const validMessages = (Array.isArray(messages) ? messages : [])
+                .filter((msg: Message) => msg && msg.id && msg.createdAt);
+              
+              const sortedMessages = validMessages
                 .filter(
                   (value: Message, index: number, self: Message[]) =>
-                    index === self.findIndex((t) => t.id === value.id)
+                    value && value.id && index === self.findIndex((t) => t && t.id === value.id)
                 )
-                .sort((a: any, b: any) => (a.createdAt < b.createdAt ? -1 : 1));
+                .sort((a: Message, b: Message) => {
+                  if (!a || !b || !a.createdAt || !b.createdAt) return 0;
+                  return a.createdAt < b.createdAt ? -1 : 1;
+                });
               
               const lastReadIndex = sortedMessages.findIndex((m: Message) => m.id === lastReadMessageId);
               const hasUnreadMessages = lastReadIndex >= 0 && lastReadIndex < sortedMessages.length - 1;
               
-              return sortedMessages.map((message: Message, index: number) => {
-                const isLastRead = message.id === lastReadMessageId && hasUnreadMessages;
-                return (
-                  <Box 
-                    key={message.id || `msg-${index}`} 
-                    data-message-id={message.id}
-                    w="100%"
-                    minH="auto"
-                    overflow="visible"
-                    sx={{ 
-                      contain: 'layout style', // Less aggressive containment to prevent cutoffs
-                      willChange: isLastRead ? 'transform' : 'auto',
-                      backfaceVisibility: 'hidden',
-                    }}
-                  >
-                    <MessageItem
-                      message={message}
-                      messages={sortedMessages}
-                      index={index}
-                    />
+              return sortedMessages
+                .filter((msg: Message) => msg && msg.id && msg.createdAt)
+                .map((message: Message, index: number) => {
+                  if (!message || !message.id || !message.createdAt) return null;
+                  const isLastRead = message.id === lastReadMessageId && hasUnreadMessages;
+                  return (
+                    <Box 
+                      key={message.id || `msg-${index}`} 
+                      data-message-id={message.id}
+                      w="100%"
+                      minH="auto"
+                      overflow="visible"
+                      sx={{ 
+                        contain: 'layout style', // Less aggressive containment to prevent cutoffs
+                        willChange: isLastRead ? 'transform' : 'auto',
+                        backfaceVisibility: 'hidden',
+                      }}
+                    >
+                      <MessageItem
+                        message={message}
+                        messages={sortedMessages.filter((m: Message) => m && m.id && m.createdAt)}
+                        index={index}
+                      />
                     {isLastRead && (
                       <Box
                         ref={lastReadMessageRef}

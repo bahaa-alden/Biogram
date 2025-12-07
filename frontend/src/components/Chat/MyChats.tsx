@@ -97,10 +97,9 @@ function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
 
   const handleChatClick = (chat: Chat) => {
     if (chat.id !== selectedChat?.id) {
-      setSelectedChat({ users: [], groupAdmin: {} });
-      setTimeout(() => {
-        setSelectedChat(chat);
-      }, 100);
+      // Directly set the chat without intermediate empty state
+      // This prevents unnecessary query refetches
+      setSelectedChat(chat);
     }
   };
 

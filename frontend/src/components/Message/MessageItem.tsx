@@ -208,7 +208,7 @@ function MessageItemComponent({ message, messages, index }: MessageItemProps) {
             alignSelf={isSender ? 'flex-end' : 'flex-start'}
             mt="2px"
           >
-            {getMessageTime(new Date(message.createdAt))}
+            {message.createdAt ? getMessageTime(new Date(message.createdAt)) : ''}
           </Box>
         </Box>
       </Box>

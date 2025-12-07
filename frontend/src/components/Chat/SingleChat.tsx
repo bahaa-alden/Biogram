@@ -131,23 +131,39 @@ function SingleChat({
     isFetchingNextPage,
     isLoading,
     isError,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ['messages', selectedChat?.id],
     queryFn: fetchMessagesPage,
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!selectedChat?.id,
-    staleTime: 30000, // 30 seconds
+    staleTime: 1000 * 60 * 5, // 5 minutes - data is fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes - keep in cache for 30 minutes
     refetchOnWindowFocus: false,
+    refetchOnMount: true, // Refetch when opening a chat to get new messages
   });
 
-  // Flatten all pages into single messages array
-  const messages = data?.pages.flatMap(page => page.messages).reverse() || [];
+  // Flatten all pages into single messages array and filter out invalid messages
+  const messages = (data?.pages.flatMap(page => page.messages || []).reverse() || []).filter(
+    (msg: Message) => msg && msg.id && msg.createdAt
+  );
   
   // Refetch function for components that need it
   const refetchMessages = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['messages', selectedChat?.id] });
   }, [queryClient, selectedChat?.id]);
+
+  // Refetch messages when opening a chat to get new messages
+  const previousChatIdRef = useRef<string | undefined>(selectedChat?.id);
+  useEffect(() => {
+    // Only refetch if chat ID changed (switching to a different chat)
+    if (selectedChat?.id && selectedChat.id !== previousChatIdRef.current) {
+      previousChatIdRef.current = selectedChat.id;
+      // Refetch messages to get the latest ones
+      refetch();
+    }
+  }, [selectedChat?.id, refetch]);
 
   // Initialize socket connection - only once per user
   useEffect(() => {
