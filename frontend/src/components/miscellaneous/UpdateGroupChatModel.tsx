@@ -4,6 +4,8 @@ import {
   Box,
   Button,
   Divider,
+  FormControl,
+  FormHelperText,
   HStack,
   IconButton,
   Input,
@@ -71,11 +73,16 @@ function UpdateGroupChatModel({
   const handleAddUser = async (userInfo: User) => {
     setLoadingChat(true);
 
-    if (selectedChat?.users?.includes(userInfo)) {
+    // Check if user is already in the chat by comparing IDs
+    const userAlreadyExists = selectedChat?.users?.some(
+      (u) => (u.id || u._id) === (userInfo.id || userInfo._id)
+    );
+
+    if (userAlreadyExists) {
       toast({
         title: 'User already in group',
-        description: 'User already exist',
-        status: 'error',
+        description: 'This user is already a member of the group',
+        status: 'warning',
         duration: 3000,
         isClosable: true,
         position: 'top',
@@ -93,23 +100,22 @@ function UpdateGroupChatModel({
       if (response.status === 'success') {
         toast({
           title: 'Added Successfully',
+          description: `${userInfo.name} has been added to the group`,
           status: 'success',
-          duration: 3000,
+          duration: 2000,
           isClosable: true,
           position: 'top',
         });
 
-        setSelectedChat({ users: [], groupAdmin: {} });
-        setTimeout(function () {
-          setSelectedChat(data);
-        }, 10);
+        // Update the selected chat without clearing it to prevent modal from closing
+        setSelectedChat(data);
         setFetchAgain(!fetchAgain);
         socket.emit('group add', data);
       }
     } catch (err: any) {
       toast({
         title: 'Error Occurred',
-        description: err.response.data.message,
+        description: err.response?.data?.message || 'Failed to add user to group',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -118,8 +124,6 @@ function UpdateGroupChatModel({
     }
     setLoadingChat(false);
     setIsClicked(-1);
-    setSearchResult([]);
-    setSearch('');
     setLoading(false);
   };
 
@@ -200,21 +204,23 @@ function UpdateGroupChatModel({
       if (response.status === 'success') {
         toast({
           title: 'Renamed Successfully',
+          description: `Group name changed to "${trimmedName}"`,
           status: 'success',
-          duration: 3000,
+          duration: 2000,
           isClosable: true,
           position: 'top',
         });
+        
+        // Update the selected chat without clearing to keep modal open
+        setSelectedChat(data);
         setFetchAgain(!fetchAgain);
-        setSelectedChat({ users: [], groupAdmin: {} });
-        setTimeout(function () {
-          setSelectedChat(data);
-        }, 10);
+        
         socket.emit('group rename', {
           chat: data,
           userId: user.id,
         });
-        // Reset form after successful rename
+        
+        // Update form with the new name
         setGroupName(data.name || trimmedName);
       }
     } catch (err: any) {
@@ -239,19 +245,21 @@ function UpdateGroupChatModel({
       if (response.status === 'success') {
         toast({
           title: 'Removed Successfully',
+          description: `${userInfo.name} has been removed from the group`,
           status: 'success',
-          duration: 3000,
+          duration: 2000,
           isClosable: true,
           position: 'top',
         });
-        if (userInfo.id === user.id)
+        
+        // If user is removing themselves, close the modal
+        if (userInfo.id === user.id) {
           setSelectedChat({ users: [], groupAdmin: {} });
-        else {
-          setSelectedChat({ users: [], groupAdmin: {} });
-          setTimeout(function () {
-            setSelectedChat(data);
-          }, 10);
+        } else {
+          // For removing other users, update without clearing to keep modal open
+          setSelectedChat(data);
         }
+        
         setFetchAgain(!fetchAgain);
         socket.emit('group remove', {
           chat: data,
@@ -262,7 +270,7 @@ function UpdateGroupChatModel({
     } catch (err: any) {
       toast({
         title: 'Error Occurred',
-        description: err.response.data.message,
+        description: err.response?.data?.message || 'Failed to remove user from group',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -281,6 +289,12 @@ function UpdateGroupChatModel({
   const textColor = useColorModeValue('gray.700', 'gray.200');
   const secondaryTextColor = useColorModeValue('gray.600', 'gray.400');
   const cardBg = useColorModeValue('gray.50', 'gray.700');
+  const headerGradient = useColorModeValue(
+    'linear(to-r, brand.500, brand.600)',
+    'linear(to-r, brand.600, brand.700)'
+  );
+  const hoverBg = useColorModeValue('gray.100', 'gray.600');
+  const inputFocusBorder = useColorModeValue('brand.500', 'brand.400');
 
   return (
     <Fragment>
@@ -313,72 +327,121 @@ function UpdateGroupChatModel({
         scrollBehavior="inside"
       >
         <ModalOverlay backdropFilter="blur(4px)" />
-        <ModalContent bg={bgColor} mx={4} maxH="90vh">
+        <ModalContent 
+          bg={bgColor} 
+          mx={4} 
+          maxH="90vh"
+          borderRadius="xl"
+          overflow="hidden"
+          boxShadow="xl"
+        >
           <ModalHeader
-            borderBottom="1px solid"
-            borderColor={borderColor}
+            bgGradient={headerGradient}
+            color="white"
             pb={4}
+            pt={6}
+            pr={14}
           >
-            <VStack spacing={0} align="stretch">
-              <HStack>
-                <Text
-                  fontSize={{ base: 'xl', md: '2xl' }}
-                  fontWeight="700"
-                  color={textColor}
-                  fontFamily="work sans"
-                  flex={1}
-                  isTruncated
+            <VStack spacing={2} align="stretch">
+              <HStack spacing={3} align="center">
+                <Box
+                  bg="whiteAlpha.200"
+                  p={2}
+                  borderRadius="lg"
+                  backdropFilter="blur(10px)"
                 >
-                  {selectedChat?.name}
-                </Text>
-                <Badge 
-                  colorScheme="brand" 
-                  px={2} 
-                  py={1} 
-                  borderRadius="md"
-                  fontSize="xs"
-                >
-                  {selectedChat.users?.length} Members
-                </Badge>
+                  <ViewIcon boxSize={5} />
+                </Box>
+                <VStack spacing={0} align="start" flex={1} minW={0}>
+                  <Text
+                    fontSize={{ base: 'lg', md: 'xl' }}
+                    fontWeight="700"
+                    fontFamily="work sans"
+                    isTruncated
+                    maxW="full"
+                  >
+                    {selectedChat?.name}
+                  </Text>
+                  <Text
+                    fontSize="sm"
+                    color="whiteAlpha.900"
+                    fontWeight="500"
+                  >
+                    Group Settings
+                  </Text>
+                </VStack>
               </HStack>
-              <Text
-                fontSize="sm"
-                color={secondaryTextColor}
-                fontWeight="normal"
-              >
-                Manage group settings and members
-              </Text>
-            </VStack>
+              </VStack>
           </ModalHeader>
-          <ModalCloseButton top={4} right={4} />
+          <ModalCloseButton 
+            top={4} 
+            right={4} 
+            p={2}
+            color="white"
+            bg="whiteAlpha.200"
+            _hover={{ bg: 'whiteAlpha.300' }}
+            borderRadius="lg"
+          />
 
-          <ModalBody py={4}>
-            <VStack spacing={5} align="stretch">
+          <ModalBody py={6} px={{ base: 4, md: 6 }}>
+            <VStack spacing={6} align="stretch">
               {/* Members Section */}
               <Box>
-                <Text
-                  fontSize="sm"
-                  fontWeight="700"
-                  color={textColor}
-                  mb={3}
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                >
-                  Group Members
-                </Text>
+                <HStack mb={3} justify="space-between" align="center">
+                  <HStack spacing={2}>
+                    <Box
+                      bg={useColorModeValue('brand.50', 'brand.900')}
+                      p={1.5}
+                      borderRadius="md"
+                    >
+                      <Text fontSize="sm">👥</Text>
+                    </Box>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="700"
+                      color={textColor}
+                      textTransform="uppercase"
+                      letterSpacing="wide"
+                    >
+                      Group Members
+                    </Text>
+                  </HStack>
+                  <Badge
+                    bg={useColorModeValue('brand.100', 'brand.900')}
+                    color={useColorModeValue('brand.700', 'brand.200')}
+                    borderRadius="full"
+                    px={3}
+                    py={1}
+                    fontSize="xs"
+                    fontWeight="600"
+                  >
+                    {selectedChat?.users?.length} {selectedChat?.users?.length === 1 ? 'Member' : 'Members'}
+                  </Badge>
+                </HStack>
                 <Box
                   bg={cardBg}
-                  p={3}
+                  p={4}
                   borderRadius="lg"
                   border="1px solid"
                   borderColor={borderColor}
-                  minH="60px"
+                  minH="80px"
+                  transition="all 0.2s"
+                  _hover={{
+                    borderColor: useColorModeValue('brand.300', 'brand.500'),
+                    shadow: 'sm',
+                  }}
                 >
-                  <UserBadgeList
-                    users={selectedChat?.users || []}
-                    handleFunction={handleRemove}
-                    isCreate={isCreate}
-                  />
+                  {selectedChat?.users && selectedChat.users.length > 0 ? (
+                    <UserBadgeList
+                      users={selectedChat.users}
+                      handleFunction={handleRemove}
+                      isCreate={isCreate}
+                    />
+                  ) : (
+                    <Text color={secondaryTextColor} textAlign="center" py={2}>
+                      No members in this group
+                    </Text>
+                  )}
                 </Box>
               </Box>
 
@@ -386,75 +449,110 @@ function UpdateGroupChatModel({
 
               {/* Rename Group Section */}
               <Box>
-                <HStack justify="space-between" mb={3}>
-                  <Text
-                    fontSize="sm"
-                    fontWeight="700"
-                    color={textColor}
-                    textTransform="uppercase"
-                    letterSpacing="wide"
-                  >
-                    Group Name
-                  </Text>
+                <HStack justify="space-between" mb={3} align="center">
+                  <HStack spacing={2}>
+                    <Box
+                      bg={useColorModeValue('brand.50', 'brand.900')}
+                      p={1.5}
+                      borderRadius="md"
+                    >
+                      <Text fontSize="sm">✏️</Text>
+                    </Box>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="700"
+                      color={textColor}
+                      textTransform="uppercase"
+                      letterSpacing="wide"
+                    >
+                      Rename Group
+                    </Text>
+                  </HStack>
                   <Text
                     fontSize="xs"
                     color={groupName.length > 45 ? 'red.500' : secondaryTextColor}
-                    fontWeight="500"
+                    fontWeight="600"
+                    bg={groupName.length > 45 ? useColorModeValue('red.50', 'red.900') : 'transparent'}
+                    px={2}
+                    py={0.5}
+                    borderRadius="md"
                   >
                     {groupName.length}/50
                   </Text>
                 </HStack>
-                <HStack spacing={2}>
-                  <InputGroup flex={1}>
-                    <InputLeftElement pointerEvents="none">
-                      <EditIcon color={secondaryTextColor} />
-                    </InputLeftElement>
-                    <Input
-                      value={groupName}
-                      placeholder={selectedChat?.name || 'Enter group name...'}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value.length <= 50) {
-                          setGroupName(value);
+                <FormControl>
+                  <HStack spacing={3}>
+                    <InputGroup flex={1}>
+                      <InputLeftElement pointerEvents="none">
+                        <EditIcon 
+                          color={secondaryTextColor} 
+                          boxSize={4}
+                        />
+                      </InputLeftElement>
+                      <Input
+                        value={groupName}
+                        placeholder={selectedChat?.name || 'Enter group name...'}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value.length <= 50) {
+                            setGroupName(value);
+                          }
+                        }}
+                        bg={cardBg}
+                        border="1px solid"
+                        borderColor={
+                          groupName.length > 45 
+                            ? useColorModeValue('red.300', 'red.600')
+                            : borderColor
                         }
-                      }}
-                      bg={cardBg}
-                      border="1px solid"
-                      borderColor={
-                        groupName.length > 45 
-                          ? useColorModeValue('red.300', 'red.600')
-                          : borderColor
+                        _hover={{ 
+                          borderColor: groupName.length > 45
+                            ? useColorModeValue('red.400', 'red.500')
+                            : useColorModeValue('brand.400', 'brand.500'),
+                          bg: hoverBg,
+                        }}
+                        _focus={{ 
+                          borderColor: groupName.length > 45
+                            ? useColorModeValue('red.500', 'red.400')
+                            : inputFocusBorder, 
+                          boxShadow: `0 0 0 1px ${groupName.length > 45 ? 'red.500' : 'var(--chakra-colors-brand-500)'}`,
+                          bg: bgColor,
+                        }}
+                        maxLength={50}
+                        isDisabled={renameLoading}
+                        size="md"
+                        borderRadius="lg"
+                      />
+                    </InputGroup>
+                    <Button
+                      colorScheme="brand"
+                      isLoading={renameLoading}
+                      loadingText="Updating..."
+                      onClick={handleRename}
+                      px={6}
+                      fontWeight="600"
+                      size="md"
+                      borderRadius="lg"
+                      isDisabled={
+                        !groupName.trim() || 
+                        groupName.trim() === selectedChat?.name ||
+                        groupName.length > 50
                       }
-                      _hover={{ 
-                        borderColor: groupName.length > 45
-                          ? useColorModeValue('red.400', 'red.500')
-                          : useColorModeValue('brand.400', 'brand.500')
+                      _hover={{
+                        transform: !renameLoading ? 'translateY(-1px)' : 'none',
+                        shadow: 'md',
                       }}
-                      _focus={{ 
-                        borderColor: groupName.length > 45
-                          ? useColorModeValue('red.500', 'red.400')
-                          : 'brand.500', 
-                        boxShadow: '0 0 0 1px'
-                      }}
-                      maxLength={50}
-                      isDisabled={renameLoading}
-                    />
-                  </InputGroup>
-                  <Button
-                    colorScheme="brand"
-                    isLoading={renameLoading}
-                    onClick={handleRename}
-                    px={6}
-                    fontWeight="600"
-                    isDisabled={
-                      !groupName.trim() || 
-                      groupName.trim() === selectedChat?.name ||
-                      groupName.length > 50
-                    }
-                  >
-                    Update
-                  </Button>
-                </HStack>
+                      transition="all 0.2s"
+                    >
+                      Save
+                    </Button>
+                  </HStack>
+                  {groupName.trim() && groupName.trim() !== selectedChat?.name && groupName.length <= 50 && (
+                    <FormHelperText mt={2} fontSize="xs" color="green.500">
+                      ✓ Ready to update group name
+                    </FormHelperText>
+                  )}
+                </FormControl>
               </Box>
 
               {selectedChat?.isGroup && user?.id === selectedChat?.groupAdmin?.id && (
@@ -463,53 +561,87 @@ function UpdateGroupChatModel({
 
                   {/* Add Members Section */}
                   <Box>
-                    <Text
-                      fontSize="sm"
-                      fontWeight="700"
-                      color={textColor}
-                      mb={3}
-                      textTransform="uppercase"
-                      letterSpacing="wide"
-                    >
-                      Add Members
-                    </Text>
-                    <InputGroup mb={3}>
-                      <InputLeftElement pointerEvents="none">
-                        <SearchIcon color={secondaryTextColor} />
+                    <HStack spacing={2} mb={3}>
+                      <Box
+                        bg={useColorModeValue('brand.50', 'brand.900')}
+                        p={1.5}
+                        borderRadius="md"
+                      >
+                        <Text fontSize="sm">➕</Text>
+                      </Box>
+                      <Text
+                        fontSize="sm"
+                        fontWeight="700"
+                        color={textColor}
+                        textTransform="uppercase"
+                        letterSpacing="wide"
+                      >
+                        Add New Members
+                      </Text>
+                    </HStack>
+                    <InputGroup mb={4}>
+                      <InputLeftElement pointerEvents="none" h="full">
+                        <SearchIcon 
+                          color={secondaryTextColor} 
+                          boxSize={4}
+                        />
                       </InputLeftElement>
                       <Input
                         value={search}
-                        placeholder="Search users to add..."
+                        placeholder="Search users by name or email..."
                         onChange={(e) => setSearch(e.target.value)}
                         bg={cardBg}
                         border="1px solid"
                         borderColor={borderColor}
-                        _hover={{ borderColor: useColorModeValue('brand.400', 'brand.500') }}
-                        _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px' }}
+                        _hover={{ 
+                          borderColor: useColorModeValue('brand.400', 'brand.500'),
+                          bg: hoverBg,
+                        }}
+                        _focus={{ 
+                          borderColor: inputFocusBorder, 
+                          boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)',
+                          bg: bgColor,
+                        }}
+                        size="md"
+                        borderRadius="lg"
                       />
                     </InputGroup>
 
                     {loading ? (
-                      <Box display="flex" justifyContent="center" py={6}>
+                      <Box 
+                        display="flex" 
+                        justifyContent="center" 
+                        py={8}
+                        bg={cardBg}
+                        borderRadius="lg"
+                        border="1px dashed"
+                        borderColor={borderColor}
+                      >
                         <VStack spacing={3}>
                           <Spinner
-                            size="lg"
+                            size="xl"
                             color="brand.500"
-                            thickness="3px"
+                            thickness="4px"
+                            speed="0.65s"
                           />
-                          <Text fontSize="sm" color={secondaryTextColor}>
-                            Searching...
+                          <Text fontSize="sm" color={secondaryTextColor} fontWeight="500">
+                            Searching users...
                           </Text>
                         </VStack>
                       </Box>
-                    ) : (
+                    ) : search && searchResult.length > 0 ? (
                       <Box
                         bg={cardBg}
                         borderRadius="lg"
                         border="1px solid"
                         borderColor={borderColor}
-                        maxH="250px"
+                        maxH="280px"
                         overflowY="auto"
+                        transition="all 0.2s"
+                        _hover={{
+                          borderColor: useColorModeValue('brand.300', 'brand.500'),
+                          shadow: 'sm',
+                        }}
                       >
                         <UserListItem
                           users={searchResult.slice(0, 4)}
@@ -518,6 +650,40 @@ function UpdateGroupChatModel({
                           isClicked={isClicked}
                           setIsClicked={setIsClicked}
                         />
+                      </Box>
+                    ) : search && searchResult.length === 0 ? (
+                      <Box
+                        bg={cardBg}
+                        borderRadius="lg"
+                        border="1px dashed"
+                        borderColor={borderColor}
+                        p={8}
+                        textAlign="center"
+                      >
+                        <Text fontSize="2xl" mb={2}>🔍</Text>
+                        <Text color={textColor} fontWeight="600" mb={1}>
+                          No users found
+                        </Text>
+                        <Text fontSize="sm" color={secondaryTextColor}>
+                          Try searching with a different name or email
+                        </Text>
+                      </Box>
+                    ) : (
+                      <Box
+                        bg={cardBg}
+                        borderRadius="lg"
+                        border="1px dashed"
+                        borderColor={borderColor}
+                        p={8}
+                        textAlign="center"
+                      >
+                        <Text fontSize="2xl" mb={2}>👥</Text>
+                        <Text color={textColor} fontWeight="600" mb={1}>
+                          Search for users
+                        </Text>
+                        <Text fontSize="sm" color={secondaryTextColor}>
+                          Type a name or email to find users to add
+                        </Text>
                       </Box>
                     )}
                   </Box>
@@ -530,13 +696,24 @@ function UpdateGroupChatModel({
             borderTop="1px solid"
             borderColor={borderColor}
             pt={4}
+            pb={4}
+            bg={useColorModeValue('white', 'gray.800')}
           >
-            <HStack spacing={3} w="full" justify={{ base: 'stretch', md: 'flex-end' }}>
+            <HStack spacing={3} w="full" justify="flex-end">
               <Button
+                variant="outline"
                 colorScheme="red"
                 onClick={() => handleRemove(user)}
                 fontWeight="600"
-                flex={{ base: 1, md: 0 }}
+                size="md"
+                borderRadius="lg"
+                px={6}
+                _hover={{
+                  bg: useColorModeValue('red.50', 'red.900'),
+                  transform: 'translateY(-1px)',
+                  shadow: 'sm',
+                }}
+                transition="all 0.2s"
               >
                 Leave Group
               </Button>

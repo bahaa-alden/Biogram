@@ -1,14 +1,13 @@
-import { Request, Response, NextFunction } from 'express';
-import catchAsync from '@utils/catchAsync';
 import Chat from '@models/chat.model';
 import AppError from '@utils/appError';
-import { IChat } from '../types/chat.type';
+import catchAsync from '@utils/catchAsync';
+import { NextFunction, Request, Response } from 'express';
 
 import {
   createOne,
-  getOne,
   deleteOne,
-  updateOne, 
+  getOne,
+  updateOne,
 } from '@controllers/handlerFactory';
 
 export const accessChat = catchAsync(
@@ -69,17 +68,19 @@ export const createGroupChat = catchAsync(
 export const renameGroup = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { chatId, name } = req.body;
-    
+
     // Trim and validate name
     const trimmedName = name?.trim();
     if (!trimmedName) {
       return next(new AppError(400, 'Group name is required'));
     }
-    
+
     if (trimmedName.length > 50) {
-      return next(new AppError(400, 'Group name must be less than 50 characters'));
+      return next(
+        new AppError(400, 'Group name must be less than 50 characters')
+      );
     }
-    
+
     const chat = await Chat.findByIdAndUpdate(
       chatId,
       { name: trimmedName },
@@ -88,11 +89,11 @@ export const renameGroup = catchAsync(
         runValidators: true,
       }
     );
-    
+
     if (!chat) {
       return next(new AppError(404, `No chat found with that ID`));
     }
-    
+
     res.status(200).json({
       status: 'success',
       data: {
@@ -105,6 +106,23 @@ export const renameGroup = catchAsync(
 export const addToGroup = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { chatId, userId } = req.body;
+
+    // First, check if the user is already in the chat
+    const existingChat = await Chat.findById(chatId);
+    if (!existingChat) {
+      return next(new AppError(404, `No chat found with that ID`));
+    }
+
+    // Check if user is already in the group
+    const userAlreadyInGroup = existingChat.users.some(
+      (user) => user?.toString() === userId.toString()
+    );
+
+    if (userAlreadyInGroup) {
+      return next(new AppError(400, 'User is already in this group'));
+    }
+
+    // Add user to the group
     const chat = await Chat.findByIdAndUpdate(
       chatId,
       { $push: { users: userId } },
@@ -113,6 +131,7 @@ export const addToGroup = catchAsync(
         runValidators: true,
       }
     );
+
     if (!chat) {
       return next(new AppError(404, `No chat found with that ID`));
     }

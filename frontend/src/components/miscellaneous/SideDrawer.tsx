@@ -1,49 +1,49 @@
 import {
-  Avatar,
-  Badge,
-  Box,
-  Button,
-  Drawer,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerOverlay,
-  FormControl,
-  HStack,
-  IconButton,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuItem,
-  MenuList,
-  Spinner,
-  Text,
-  Tooltip,
-  useColorMode,
-  useColorModeValue,
-  useDisclosure,
-  useToast,
-  VStack
+    Avatar,
+    Badge,
+    Box,
+    Button,
+    Drawer,
+    DrawerBody,
+    DrawerCloseButton,
+    DrawerContent,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerOverlay,
+    FormControl,
+    HStack,
+    Input,
+    InputGroup,
+    InputLeftElement,
+    Menu,
+    MenuButton,
+    MenuDivider,
+    MenuItem,
+    MenuList,
+    Spinner,
+    Text,
+    Tooltip,
+    useColorMode,
+    useColorModeValue,
+    useDisclosure,
+    useToast,
+    VStack
 } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Fragment, useEffect, useState } from 'react';
 
 import {
-  BellIcon,
-  ChevronDownIcon,
-  MoonIcon,
-  Search2Icon,
-  SearchIcon,
-  SunIcon,
+    BellIcon,
+    ChevronDownIcon,
+    MoonIcon,
+    Search2Icon,
+    SearchIcon,
+    SunIcon,
 } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { getSender } from '../../config/chatLogics';
 import { chatState } from '../../Context/ChatProvider';
+import { useSocket } from '../../hooks/useSocket';
 import { chatService } from '../../services/api/chat.service';
 import { notificationService } from '../../services/api/notification.service';
 import { userService } from '../../services/api/user.service';
@@ -72,6 +72,7 @@ function SideDrawer({
     setNotification,
   } = chatState();
   const queryClient = useQueryClient();
+  const { socket } = useSocket(user);
 
   const [search, setSearch] = useState('');
   const [searchResult, setSearchResult] = useState<User[]>([]);
@@ -93,9 +94,35 @@ function SideDrawer({
       setNotification(data);
     } catch (error) {}
   };
+  
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotificationsAgain]);
+
+  // Listen for real-time notification updates via socket
+  useEffect(() => {
+    if (!socket || !user?.id) return;
+
+    const handleNewNotification = () => {
+      // Refetch notifications when a new notification is received
+      fetchNotifications();
+    };
+
+    const handleMessageReceived = (newMessage: any) => {
+      // Check if message is for a chat that's not currently selected
+      if (newMessage?.chat?.id !== selectedChat?.id) {
+        fetchNotifications();
+      }
+    };
+
+    socket.on('notification', handleNewNotification);
+    socket.on('message received', handleMessageReceived);
+
+    return () => {
+      socket.off('notification', handleNewNotification);
+      socket.off('message received', handleMessageReceived);
+    };
+  }, [socket, user?.id, selectedChat?.id]);
 
   const handleMarkAllAsRead = async () => {
     if (!user?.id || !notification.length) return;
@@ -289,34 +316,44 @@ function SideDrawer({
           <Menu>
             <Tooltip label="Notifications" placement="bottom">
               <MenuButton
-                as={IconButton}
-                icon={<BellIcon />}
-                variant="ghost"
-                colorScheme="brand"
-                size={{ base: 'sm', md: 'md' }}
+                as={Box}
+                cursor="pointer"
                 position="relative"
                 aria-label={`Notifications${notification.length ? `: ${notification.length} unread` : ''}`}
+                px={{ base: 2, md: 3 }}
+                py={{ base: 2, md: 2 }}
+                borderRadius="md"
+                transition="all 0.2s"
+                _hover={{
+                  bg: useColorModeValue('gray.100', 'gray.700'),
+                }}
               >
-                {notification.length > 0 && (
-                  <Badge
-                    position="absolute"
-                    top="-1"
-                    right="-1"
-                    bg="red.500"
-                    color="white"
-                    borderRadius="full"
-                    minW="20px"
-                    minH="20px"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    fontSize="xs"
-                    fontWeight="bold"
-                    boxShadow="md"
-                  >
-                    {notification.length > 9 ? '9+' : notification.length}
-                  </Badge>
-                )}
+                <Box position="relative" display="inline-block">
+                  <BellIcon boxSize={{ base: 6, md: 7 }} color={useColorModeValue('gray.600', 'gray.300')} />
+                  {notification.length > 0 && (
+                    <Badge
+                      position="absolute"
+                      top="-8px"
+                      right="-8px"
+                      bg="red.500"
+                      color="white"
+                      borderRadius="full"
+                      minW="20px"
+                      minH="20px"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      fontSize="xs"
+                      fontWeight="bold"
+                      boxShadow="lg"
+                      border="2px solid"
+                      borderColor={headerBg}
+                      px={notification.length > 9 ? 1 : 0}
+                    >
+                      {notification.length > 99 ? '99+' : notification.length}
+                    </Badge>
+                  )}
+                </Box>
               </MenuButton>
             </Tooltip>
             <MenuList
@@ -363,7 +400,20 @@ function SideDrawer({
                 notification.map((notif: Notification, index: number) => (
                   <MenuItem
                     key={notif.id || notif._id || `notif-${index}`}
-                    onClick={() => {
+                    onClick={async () => {
+                      // Mark notification as read
+                      const notifId = notif.id || notif._id;
+                      if (notifId && user?.id) {
+                        try {
+                          await notificationService.updateNotification(user.id, notifId, { read: true });
+                          // Refresh notifications
+                          setFetchNotificationsAgain(!fetchNotificationsAgain);
+                        } catch (error) {
+                          console.error('Failed to mark notification as read:', error);
+                        }
+                      }
+
+                      // Navigate to chat
                       if (
                         notif.message &&
                         notif.message.chat &&

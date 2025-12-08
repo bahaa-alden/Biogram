@@ -188,6 +188,10 @@ function MessageList({
       )}
       
       {Object.entries(groupedMessages)
+        .sort(([dateA], [dateB]) => {
+          // Sort dates in ascending order (oldest first)
+          return new Date(dateA).getTime() - new Date(dateB).getTime();
+        })
         .filter(([date, messages]: any) => {
           // Validate entry before processing
           if (!date || typeof date !== 'string') return false;
