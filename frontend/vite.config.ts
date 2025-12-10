@@ -68,5 +68,5 @@ export default defineConfig({
       },
     }),
   ],
-  server: { proxy: { '/api': 'https://biogram-api.kaiali.cloud' } },
+  server: { proxy: { '/api': 'http://localhost:5000' } },
 });
