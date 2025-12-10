@@ -1,6 +1,7 @@
 const ss = require('./alias');
 import connDB from '@config/database';
 import { settings } from '@config/settings';
+import Message from '@models/message.model';
 import User from '@models/user.model';
 import '@utils/unCaughtException';
 import { Server } from 'socket.io';
@@ -100,6 +101,55 @@ io.on('connection', (socket) => {
 
         io.to(roomId).emit('stop typing', { chatId: roomId, userId });
       }
+    }
+  );
+
+  socket.on(
+    'new-message',
+    async (body: { content: string; sender: string; chat: string }) => {
+      const message: any = await Message.create(body);
+      await message.populate({
+        path: 'sender',
+        select: 'name photo email _id',
+      });
+      await message.populate({
+        path: 'chat',
+        select: { lastMessage: 0 },
+        populate: {
+          path: 'users',
+          select: 'name photo email _id',
+        },
+      });
+      const { chat } = message;
+
+      if (!chat?.users || !Array.isArray(chat.users)) {
+        return;
+      }
+      const chatId = String(chat._id || chat.id);
+      if (chatId) {
+        io.to(chatId).emit('message-received', {
+          content: message.content,
+          sender: message.sender?.id,
+          chat: message.chat.id,
+          createdAt: message.createdAt!,
+          updatedAt: message.updatedAt!,
+          id: message.id,
+        });
+      }
+
+      chat.users.forEach((user: any) => {
+        const userId = String(user?._id || user?.id);
+        if (userId) {
+          io.to(userId).emit('message-received', {
+            content: message.content,
+            sender: message.sender?.id,
+            chat: message.chat.id,
+            createdAt: message.createdAt!,
+            updatedAt: message.updatedAt!,
+            id: message.id,
+          });
+        }
+      });
     }
   );
 
