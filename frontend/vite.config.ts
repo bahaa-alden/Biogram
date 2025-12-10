@@ -68,5 +68,7 @@ export default defineConfig({
       },
     }),
   ],
-  server: { proxy: { '/api': 'https://biogram-api.kaiali.cloud' } },
+  server: {
+    proxy: { '/api': process.env.VITE_API_URL || 'http://localhost:5000' },
+  },
 });
