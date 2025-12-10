@@ -1,22 +1,9 @@
-import {
-  MiddlewareOptions,
-  MongooseDefaultQueryMiddleware,
-  MongooseDocumentMiddleware,
-  MongooseQueryAndDocumentMiddleware,
-  Query,
-  QueryOptions,
-  Schema,
-  model,
-} from 'mongoose';
+import { Query, Schema, model } from 'mongoose';
 import {
   INotification,
   NotificationDoc,
   NotificationModel,
 } from '../types/notification.type';
-import AppError from '@utils/appError';
-import { IUser } from '../types/user.type';
-import { IMessage } from '../types/message.type';
-import { IChat } from '../types/chat.type';
 
 const notificationSchema = new Schema<NotificationDoc, NotificationModel, any>(
   {
@@ -45,9 +32,17 @@ const notificationSchema = new Schema<NotificationDoc, NotificationModel, any>(
 notificationSchema.pre<Query<INotification, INotification>>(
   /^find/,
   function (next) {
-    this.populate({ path: 'user', select: 'name photo email' });
-    this.populate({ path: 'message' });
-    this.populate({ path: 'chat' });
+    this.populate({
+      path: 'chat',
+      select: {
+        id: 1,
+        isGroup: 1,
+        name: 1,
+        groupAdmin: 1,
+        users: 1,
+        lastMessage: 0,
+      },
+    });
 
     next();
   }

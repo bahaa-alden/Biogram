@@ -33,6 +33,8 @@ export interface Notification {
   _id?: string;
   chat?: Chat;
   message?: Message;
+  receiverName: string;
+  chatAdmin: string;
   read?: boolean;
   createdAt?: string | Date;
 }

@@ -1,10 +1,9 @@
-import { PopulatedDoc, Query, Schema, Types, model } from 'mongoose';
-import { MessageModel, MessageDoc, IMessage } from '../types/message.type';
-import Chat from './chat.model';
-import { IUser } from '../types/user.type';
-import Notification from './notification.model';
 import AppError from '@utils/appError';
-import { IChat } from '../types/chat.type';
+import { PopulatedDoc, Query, Schema, Types, model } from 'mongoose';
+import { IMessage, MessageDoc, MessageModel } from '../types/message.type';
+import { IUser } from '../types/user.type';
+import Chat from './chat.model';
+import Notification from './notification.model';
 
 const messageSchema = new Schema<MessageDoc, MessageModel, any>(
   {
@@ -62,7 +61,7 @@ messageSchema.post('save', async function (doc) {
 
 messageSchema.pre<Query<IMessage, IMessage>>(/^find/, function (next) {
   this.populate({ path: 'sender', select: 'name photo email' });
-  this.populate({ path: 'chat', select: { lastMessage: 0 } });
+
   next();
 });
 const Message = model<MessageDoc>('Message', messageSchema);

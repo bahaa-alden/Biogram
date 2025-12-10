@@ -1,48 +1,48 @@
 import {
-    Avatar,
-    Badge,
-    Box,
-    Button,
-    Drawer,
-    DrawerBody,
-    DrawerCloseButton,
-    DrawerContent,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerOverlay,
-    FormControl,
-    HStack,
-    Input,
-    InputGroup,
-    InputLeftElement,
-    Menu,
-    MenuButton,
-    MenuDivider,
-    MenuItem,
-    MenuList,
-    Spinner,
-    Text,
-    Tooltip,
-    useColorMode,
-    useColorModeValue,
-    useDisclosure,
-    useToast,
-    VStack
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  FormControl,
+  HStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Menu,
+  MenuButton,
+  MenuDivider,
+  MenuItem,
+  MenuList,
+  Spinner,
+  Text,
+  Tooltip,
+  useColorMode,
+  useColorModeValue,
+  useDisclosure,
+  useToast,
+  VStack
 } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Fragment, useEffect, useState } from 'react';
 
 import {
-    BellIcon,
-    ChevronDownIcon,
-    MoonIcon,
-    Search2Icon,
-    SearchIcon,
-    SunIcon,
+  BellIcon,
+  ChevronDownIcon,
+  MoonIcon,
+  Search2Icon,
+  SearchIcon,
+  SunIcon,
 } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
-import { getSender } from '../../config/chatLogics';
 import { chatState } from '../../Context/ChatProvider';
+import { useNotifications } from '../../hooks/queries/useNotifications';
 import { useSocket } from '../../hooks/useSocket';
 import { chatService } from '../../services/api/chat.service';
 import { notificationService } from '../../services/api/notification.service';
@@ -68,8 +68,6 @@ function SideDrawer({
     user,
     selectedChat,
     setSelectedChat,
-    notification,
-    setNotification,
   } = chatState();
   const queryClient = useQueryClient();
   const { socket } = useSocket(user);
@@ -82,16 +80,13 @@ function SideDrawer({
   const [loadingChat, setLoadingChat] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigator = useNavigate();
-
+  const { data: notifications, isLoading, refetch } = useNotifications(user?.id, { read: false });
   const toast = useToast();
   const { colorMode, toggleColorMode } = useColorMode();
 
   const fetchNotifications = async () => {
-    if (!user?.id) return;
     try {
-      const response = await notificationService.getNotifications(user.id, { read: false, limit: 10 });
-      const data = response.data.data;
-      setNotification(data);
+      refetch();
     } catch (error) {}
   };
   
@@ -108,11 +103,12 @@ function SideDrawer({
       fetchNotifications();
     };
 
-    const handleMessageReceived = (newMessage: any) => {
+    const handleMessageReceived =async (newMessage: any) => {
       // Check if message is for a chat that's not currently selected
-      if (newMessage?.chat?.id !== selectedChat?.id) {
-        fetchNotifications();
+      if(selectedChat?.id === newMessage.chat.id) {
+        await notificationService.markNotificationRead(newMessage.chat.id);
       }
+      await queryClient.invalidateQueries({ queryKey: ['notifications'] });
     };
 
     socket.on('notification', handleNewNotification);
@@ -125,10 +121,10 @@ function SideDrawer({
   }, [socket, user?.id, selectedChat?.id]);
 
   const handleMarkAllAsRead = async () => {
-    if (!user?.id || !notification.length) return;
+    if (!user?.id || !notifications?.length) return;
     
     try {
-      const notificationIds = notification
+      const notificationIds = notifications
         .map((notif) => notif.id || notif._id)
         .filter((id): id is string => !!id);
       
@@ -319,7 +315,7 @@ function SideDrawer({
                 as={Box}
                 cursor="pointer"
                 position="relative"
-                aria-label={`Notifications${notification.length ? `: ${notification.length} unread` : ''}`}
+                aria-label={`Notifications${notifications?.length ? `: ${notifications?.length} unread` : ''}`}
                 px={{ base: 2, md: 3 }}
                 py={{ base: 2, md: 2 }}
                 borderRadius="md"
@@ -330,7 +326,7 @@ function SideDrawer({
               >
                 <Box position="relative" display="inline-block">
                   <BellIcon boxSize={{ base: 6, md: 7 }} color={useColorModeValue('gray.600', 'gray.300')} />
-                  {notification.length > 0 && (
+                  {notifications?.length! > 0 && (
                     <Badge
                       position="absolute"
                       top="-8px"
@@ -348,9 +344,9 @@ function SideDrawer({
                       boxShadow="lg"
                       border="2px solid"
                       borderColor={headerBg}
-                      px={notification.length > 9 ? 1 : 0}
+                      px={notifications?.length! > 9 ? 1 : 0}
                     >
-                      {notification.length > 99 ? '99+' : notification.length}
+                      {notifications?.length! > 99 ? '99+' : notifications?.length}
                     </Badge>
                   )}
                 </Box>
@@ -370,7 +366,7 @@ function SideDrawer({
                   <Text fontWeight="700" fontSize="md" color={textColor}>
                     Notifications
                   </Text>
-                  {notification.length > 0 && (
+                  { notifications?.length! > 0 && (
                     <Button
                       size="xs"
                       variant="ghost"
@@ -385,11 +381,11 @@ function SideDrawer({
                   )}
                 </HStack>
                 <Text fontSize="xs" color={secondaryTextColor}>
-                  {notification.length} unread messages
+                  {notifications?.length} unread messages
                 </Text>
               </Box>
               
-              {!notification.length ? (
+              {!notifications?.length ? (
                 <Box py={8} textAlign="center">
                   <BellIcon boxSize={10} color={secondaryTextColor} mb={2} />
                   <Text color={secondaryTextColor} fontSize="sm">
@@ -397,7 +393,7 @@ function SideDrawer({
                   </Text>
                 </Box>
               ) : (
-                notification.map((notif: Notification, index: number) => (
+                notifications?.map((notif: Notification, index: number) => (
                   <MenuItem
                     key={notif.id || notif._id || `notif-${index}`}
                     onClick={async () => {
@@ -405,7 +401,7 @@ function SideDrawer({
                       const notifId = notif.id || notif._id;
                       if (notifId && user?.id) {
                         try {
-                          await notificationService.updateNotification(user.id, notifId, { read: true });
+                          await notificationService.markNotificationRead(notif.chat?.id!);
                           // Refresh notifications
                           setFetchNotificationsAgain(!fetchNotificationsAgain);
                         } catch (error) {
@@ -416,11 +412,11 @@ function SideDrawer({
                       // Navigate to chat
                       if (
                         notif.message &&
-                        notif.message.chat &&
-                        notif.message.chat.id !== selectedChat?.id
+                        notif.chat &&
+                        notif.chat.id !== selectedChat?.id
                       ) {
-                        if (notif.message?.chat) {
-                          setSelectedChat(notif.message.chat);
+                        if (notif.chat) {
+                          setSelectedChat(notif.chat);
                         }
                       } else {
                         if (notif.chat && notif.chat.id !== selectedChat?.id) {
@@ -436,11 +432,11 @@ function SideDrawer({
                   >
                     <VStack align="start" spacing={1} w="full">
                       <Text fontSize="sm" fontWeight="600" color={textColor} noOfLines={1}>
-                        {notif.message && notif.message.chat ? (
+                        {notif.message && notif.chat ? (
                           <>
-                            {notif.message.chat.isGroup
-                              ? notif.message.chat.name
-                              : getSender(user, notif.message.chat.users)}
+                            {notif.chat.isGroup
+                              ? notif.chat.name
+                              : notif.receiverName}
                           </>
                         ) : notif.chat ? (
                           notif.chat.name || 'Group'
@@ -449,14 +445,14 @@ function SideDrawer({
                         )}
                       </Text>
                       <Text fontSize="xs" color={secondaryTextColor} noOfLines={2}>
-                        {notif.message && notif.message.chat ? (
+                        {notif.message && notif.chat ? (
                           <>
-                            {notif.message.chat.isGroup
+                            {notif.chat.isGroup
                               ? `New message in group`
                               : `New message`}
                           </>
                         ) : notif.chat ? (
-                          `${notif.chat.groupAdmin?.name?.split(' ')[0] || 'Someone'} added you to the group`
+                          `${notif.chatAdmin || 'Someone'} added you to the group`
                         ) : (
                           'New notification'
                         )}

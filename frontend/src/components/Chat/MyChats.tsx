@@ -82,6 +82,7 @@ function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
 
     const handleGroupAdd = () => {
       queryClient.invalidateQueries({ queryKey: ['chats'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     };
 
     socket.on('group rename', handleGroupRename);

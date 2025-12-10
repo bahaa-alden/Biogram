@@ -1,5 +1,5 @@
-import { Model, Query } from 'mongoose';
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import { Model } from 'mongoose';
 import APIFeatures from '../utils/apiFeatures';
 import AppError from '../utils/appError';
 import catchAsync from '../utils/catchAsync';
@@ -62,7 +62,7 @@ export const getOne = (Model: Model<any>, ...popOptions: Array<any>) =>
     });
   });
 
-export const getAll = (Model: Model<any>) =>
+export const getAll = (Model: Model<any>, isNotification: boolean = false) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     //small hack
     let filter: any = {};
@@ -82,8 +82,24 @@ export const getAll = (Model: Model<any>) =>
       .search(req.querySearch);
 
     // [Model.modelName.toLowerCase() + 's']
-    const docs = await feature.query;
-
+    let docs = await feature.query;
+    if (isNotification) {
+      docs = docs.map((doc: any) => {
+        if (doc.chat.isGroup) {
+          doc = { ...doc.toObject(), name: doc.chat.name };
+          doc = { ...doc, chatAdmin: doc.chat.groupAdmin?.name?.split(' ')[0] };
+        } else {
+          doc = {
+            ...doc.toObject(),
+            receiverName:
+              req.user.id === doc.chat.users[0].id
+                ? doc.chat.users[1]?.name || 'Unknown'
+                : doc.chat.users[0]?.name || 'Unknown',
+          };
+        }
+        return doc;
+      });
+    }
     if (req.query.reverse) {
       docs.reverse();
     }

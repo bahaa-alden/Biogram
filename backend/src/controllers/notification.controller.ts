@@ -47,7 +47,7 @@ export const markNotificationsRead = catchAsync(
   }
 );
 
-export const getAllNotification = getAll(Notification);
+export const getAllNotification = getAll(Notification, true);
 export const createNotification = createOne(Notification);
 export const getNotification = getOne(Notification);
 export const updateNotification = updateOne(Notification);

@@ -245,6 +245,7 @@ export const useSocket = (user: User | undefined) => {
 
       const handleGroupAdd = () => {
         queryClient.invalidateQueries({ queryKey: ['chats'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
       };
 
       socketInstance.on('connect', handleConnect);

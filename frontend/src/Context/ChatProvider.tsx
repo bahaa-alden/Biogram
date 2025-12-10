@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { GlobalContextType, INITIAL_VALUE } from '../types/context';
-import { Chat, User, props, Notification } from '../types/interfaces';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '../hooks/queries/useAuth';
+import { GlobalContextType, INITIAL_VALUE } from '../types/context';
+import { Chat, Notification, User, props } from '../types/interfaces';
 
 const ChatContext = createContext<GlobalContextType>(INITIAL_VALUE);
 
@@ -9,10 +9,7 @@ const ChatProvider = ({ children }: props) => {
   // Get user from React Query
   const { data: userData, isLoading: userLoading } = useAuth();
   const [user, setUser] = useState<User>({});
-  const [selectedChat, setSelectedChat] = useState<Chat>({
-    users: [],
-    groupAdmin: {},
-  });
+  const [selectedChat, setSelectedChat] = useState<Chat|null>(null);
   const [notification, setNotification] = useState<Notification[]>([]);
   const [lo, setLo] = useState(true);
 

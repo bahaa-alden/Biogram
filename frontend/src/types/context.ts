@@ -1,13 +1,12 @@
-import { ReactNode } from 'react';
-import { User, Chat, Notification } from './interfaces';
+import { Chat, Notification, User } from './interfaces';
 
 export type GlobalContextType = {
   user: User;
   setUser: (value: User) => void;
   chats: Chat[];
   setChats: (value: Chat[]) => void;
-  selectedChat: Chat;
-  setSelectedChat: (value: Chat) => void;
+  selectedChat: Chat | null;
+  setSelectedChat: (value: Chat | null) => void;
   notification: Notification[];
   setNotification: (value: Notification[]) => void;
   lo: boolean;
