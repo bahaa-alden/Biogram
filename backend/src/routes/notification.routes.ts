@@ -3,7 +3,7 @@ import {
   deleteNotification,
   getAllNotification,
   getNotification,
-  markNotificationsReadByIds,
+  markNotificationsRead,
   updateCAndMNotifications,
   updateNotification,
 } from '@controllers/notification.controller';
@@ -11,7 +11,6 @@ import { validate } from '@middlewares/validation.middleware';
 import {
   getNotificationsSchema,
   markNotificationReadSchema,
-  markNotificationsReadByIdsSchema,
   mongoIdSchema,
 } from '@utils/validation.schemas';
 import { Router } from 'express';
@@ -270,22 +269,6 @@ router.patch(
  *         schema:
  *           type: string
  *         description: User ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - notificationIds
- *             properties:
- *               notificationIds:
- *                 type: array
- *                 items:
- *                   type: string
- *                 minItems: 1
- *                 description: Array of notification IDs to mark as read
- *                 example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
  *     responses:
  *       200:
  *         description: Notifications marked as read successfully
@@ -317,11 +300,7 @@ router.patch(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.patch(
-  '/markRead',
-  validate(markNotificationsReadByIdsSchema),
-  markNotificationsReadByIds
-);
+router.patch('/markRead', markNotificationsRead);
 
 /**
  * @swagger

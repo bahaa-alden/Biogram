@@ -1,14 +1,13 @@
+import Notification from '@models/notification.model';
 import catchAsync from '@utils/catchAsync';
-import AppError from '@utils/appError';
 import { NextFunction, Request, Response } from 'express';
 import {
   createOne,
+  deleteOne,
   getAll,
   getOne,
   updateOne,
-  deleteOne,
 } from './handlerFactory';
-import Notification from '@models/notification.model';
 
 export const updateCAndMNotifications = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -29,32 +28,16 @@ export const updateCAndMNotifications = catchAsync(
   }
 );
 
-export const markNotificationsReadByIds = catchAsync(
+export const markNotificationsRead = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { notificationIds } = req.body;
-    const { userId } = req.params;
-    
-    if (!req.user) {
-      return next(new AppError(401, 'User not authenticated'));
-    }
-    
-    const currentUserId = (req.user as any).id || (req.user as any)._id;
-    
-    // Verify that the userId in params matches the authenticated user
-    if (userId !== currentUserId) {
-      return next(new AppError(403, 'Unauthorized: Cannot mark notifications for another user'));
-    }
-    
-    // Update notifications that belong to the user and are in the provided IDs
     const result = await Notification.updateMany(
       {
-        _id: { $in: notificationIds },
-        user: userId,
+        user: req.user.id,
         read: false,
       },
       { read: true }
     );
-    
+
     res.status(200).json({
       status: 'success',
       data: {

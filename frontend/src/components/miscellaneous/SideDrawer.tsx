@@ -134,7 +134,7 @@ function SideDrawer({
       
       if (notificationIds.length === 0) return;
       
-      await notificationService.markNotificationsReadByIds(user.id, notificationIds);
+      await notificationService.markAllNotificationsRead(user.id);
       
       toast({
         title: 'All notifications marked as read',
