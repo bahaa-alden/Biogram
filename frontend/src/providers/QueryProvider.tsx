@@ -17,6 +17,10 @@ const queryClient = new QueryClient({
       },
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
+      // Structural sharing for better performance
+      structuralSharing: true,
+      // Network mode: prefer cache over network when available
+      networkMode: 'online',
     },
     mutations: {
       retry: (failureCount, error: any) => {

@@ -1,15 +1,17 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { Box, useColorModeValue } from '@chakra-ui/react';
+import { useParams } from 'react-router-dom';
 import { chatState } from '../../Context/ChatProvider';
 import SingleChat from './SingleChat';
 
 interface ChatBoxProps {
   fetchAgain: boolean;
-  setFetchAgain: React.Dispatch<React.SetStateAction<boolean>>;
+  setFetchAgain: Dispatch<SetStateAction<boolean>>;
   color: string;
   bg: string;
   fetchNotificationsAgain: boolean;
-  setFetchNotificationsAgain: React.Dispatch<React.SetStateAction<boolean>>;
-  display?: any;
+  setFetchNotificationsAgain: Dispatch<SetStateAction<boolean>>;
+  display?: Record<string, string>;
 }
 
 function ChatBox({
@@ -21,12 +23,13 @@ function ChatBox({
   setFetchNotificationsAgain,
   display,
 }: ChatBoxProps) {
+  const { chatId } = useParams<{ chatId?: string }>();
   const { selectedChat } = chatState();
 
   return (
     <Box
       display={display || {
-        base: selectedChat?.users?.length ? 'flex' : 'none',
+        base: chatId || selectedChat?.users?.length ? 'flex' : 'none',
         md: 'flex',
       }}
       flexDir="column"

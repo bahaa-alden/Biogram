@@ -9,6 +9,7 @@ import {
   useColorModeValue
 } from '@chakra-ui/react';
 import { useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getSender, getSenderFull } from '../../config/chatLogics';
 import { chatState } from '../../Context/ChatProvider';
 import { useChats } from '../../hooks/queries/useChats';
@@ -22,13 +23,15 @@ interface MyChatProps {
   fetchAgain: boolean;
   bg: string;
   color: string;
-  display?: any;
+  display?: Record<string, string>;
   width?: number; // Width in pixels for responsive mode
 }
 
 type DisplayMode = 'compact' | 'medium' | 'full';
 
 function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
+  const { chatId: urlChatId } = useParams<{ chatId?: string }>();
+  const navigate = useNavigate();
   const { selectedChat, setSelectedChat, user } = chatState();
   
   // Always call hooks in the same order - don't conditionally call hooks
@@ -97,9 +100,13 @@ function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
   }, [socket]);
 
   const handleChatClick = (chat: Chat) => {
-    if (chat.id !== selectedChat?.id) {
-      // Directly set the chat without intermediate empty state
-      // This prevents unnecessary query refetches
+    const chatId = chat.id || chat._id;
+    const currentChatId = urlChatId || selectedChat?.id || selectedChat?._id;
+    
+    if (chatId && chatId !== currentChatId) {
+      // Navigate to chat URL instead of using state
+      navigate(`/chats/${chatId}`, { replace: false });
+      // Also update context for backward compatibility
       setSelectedChat(chat);
     }
   };
@@ -109,7 +116,7 @@ function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
       ref={containerRef}
       bg={boxBg}
       display={display || {
-        base: selectedChat?.users?.length ? 'none' : 'flex',
+        base: urlChatId || selectedChat?.users?.length ? 'none' : 'flex',
         md: 'flex',
       }}
       flexDir="column"
@@ -209,7 +216,9 @@ function MyChat({ fetchAgain, bg, color, display, width }: MyChatProps) {
         ) : chats && chats.length > 0 ? (
           <Stack spacing={{ base: 1.5, md: 1.5, lg: 2 }}>
             {chats.map((chat: Chat) => {
-              const isSelected = selectedChat?.id === chat.id;
+              const chatId = chat.id || chat._id;
+              const currentChatId = urlChatId || selectedChat?.id || selectedChat?._id;
+              const isSelected = chatId === currentChatId;
               const sender = getSenderFull(user, chat.users || []);
               const chatName = !chat.isGroup ? getSender(user, chat.users || []) : (chat.name || 'Unnamed Group');
 

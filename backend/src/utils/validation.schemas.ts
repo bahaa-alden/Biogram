@@ -241,3 +241,12 @@ export const markNotificationReadSchema = {
     chatId: mongoIdSchema,
   }),
 };
+
+export const markMessagesAsReadSchema = {
+  params: z.object({
+    chatId: mongoIdSchema,
+  }),
+  body: z.object({
+    lastMessageId: mongoIdSchema.optional(),
+  }),
+};

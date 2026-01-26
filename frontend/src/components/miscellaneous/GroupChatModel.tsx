@@ -29,6 +29,7 @@ import { chatState } from '../../Context/ChatProvider';
 import { chatService } from '../../services/api/chat.service';
 import { userService } from '../../services/api/user.service';
 import { User } from '../../types/interfaces';
+import logger from '../../utils/logger';
 import UserListItem from '../UserAvatar/UserListItems';
 import UserBadgeList from '../UserBadge/UserBadgeList';
 
@@ -59,10 +60,11 @@ function GroupChatModel({ children, socket }: any) {
       const response = await userService.getUsers({ search: search.trim() });
       const data = response.data.data;
       setSearchResult(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      logger.error('Error searching users', err as Error);
       toast({
         title: 'Error Occurred',
-        description: err.response?.data?.message || 'Failed to load the search result',
+        description: (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to load the search result',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -140,7 +142,8 @@ function GroupChatModel({ children, socket }: any) {
         });
         socket.emit('group add', data);
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      logger.error('Error creating group chat', err as Error);
       toast({
         title: 'Failed to create the chat',
         status: 'error',

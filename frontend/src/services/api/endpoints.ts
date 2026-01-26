@@ -33,6 +33,11 @@ export const API_ENDPOINTS = {
   GET_MESSAGE: (chatId: string, messageId: string) => `/chats/${chatId}/messages/${messageId}`,
   UPDATE_MESSAGE: (chatId: string, messageId: string) => `/chats/${chatId}/messages/${messageId}`,
   DELETE_MESSAGE: (chatId: string, messageId: string) => `/chats/${chatId}/messages/${messageId}`,
+  MARK_MESSAGES_READ: (chatId: string) => `/chats/${chatId}/messages/read`,
+  SAVE_LAST_VISIBLE_MESSAGE: (chatId: string) => `/chats/${chatId}/messages/last-visible`,
+  SAVE_CENTER_MESSAGE: (chatId: string) => `/chats/${chatId}/messages/center-message`,
+  GET_READ_STATE: (chatId: string) => `/chats/${chatId}/messages/read-state`,
+  UPDATE_READ_STATE: (chatId: string) => `/chats/${chatId}/messages/read-state`,
   
   // Notifications
   GET_NOTIFICATIONS: (userId: string) => `/users/${userId}/notifications`,

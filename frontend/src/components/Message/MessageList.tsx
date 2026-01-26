@@ -1,26 +1,32 @@
+import type { RefObject } from 'react';
 import { Box, Divider, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
 import moment from 'moment';
 import { useEffect } from 'react';
 import { Message } from '../../types/interfaces';
+import logger from '../../utils/logger';
 import MessageItem from './MessageItem';
+
+interface MessageListProps {
+  messages: Message[];
+  containerRef: RefObject<HTMLDivElement>;
+  loadMoreTriggerRef?: RefObject<HTMLDivElement>;
+  loadNewerTriggerRef?: RefObject<HTMLDivElement>;
+  isLoadingMore?: boolean;
+  isEndOfMessages?: boolean;
+  firstUnreadMessageId?: string | null;
+  lastReadMessageRef?: RefObject<HTMLDivElement>;
+}
 
 function MessageList({
   messages,
   containerRef,
   loadMoreTriggerRef,
+  loadNewerTriggerRef,
   isLoadingMore,
   isEndOfMessages,
-  lastReadMessageId,
+  firstUnreadMessageId,
   lastReadMessageRef,
-}: {
-  messages: Message[];
-  containerRef: any;
-  loadMoreTriggerRef?: any;
-  isLoadingMore?: boolean;
-  isEndOfMessages?: boolean;
-  lastReadMessageId?: string | null;
-  lastReadMessageRef?: React.RefObject<HTMLDivElement>;
-}) {
+}: MessageListProps) {
   // All hooks must be called unconditionally at the top
   const dateBg = useColorModeValue('rgba(0, 0, 0, 0.6)', 'rgba(255, 255, 255, 0.15)');
   const dateColor = useColorModeValue('white', 'white');
@@ -36,21 +42,24 @@ function MessageList({
   const groupedMessages = messages.reduce((groups: any, message: Message, index: number) => {
     // Strict validation: ensure message is valid before processing
     if (!message || typeof message !== 'object') {
-      console.warn(`[MessageList] Invalid message at index ${index}:`, message);
+      logger.warn(`[MessageList] Invalid message at index ${index}`, { message, index });
       return groups;
     }
     if (!message.createdAt) {
-      console.warn(`[MessageList] Message missing createdAt at index ${index}:`, message);
+      logger.warn(`[MessageList] Message missing createdAt at index ${index}`, { message, index });
       return groups;
     }
     if (!message.id && !message._id) {
-      console.warn(`[MessageList] Message missing id at index ${index}:`, message);
+      logger.warn(`[MessageList] Message missing id at index ${index}`, { message, index });
       return groups;
     }
     try {
       const date = moment(message.createdAt).format('YYYY-MM-DD');
       if (!date || date === 'Invalid date') {
-        console.warn(`[MessageList] Invalid date for message at index ${index}:`, message.createdAt);
+        logger.warn(`[MessageList] Invalid date for message at index ${index}`, {
+          createdAt: message.createdAt,
+          index,
+        });
         return groups;
       }
       if (!groups[date]) {
@@ -59,7 +68,10 @@ function MessageList({
       groups[date].push(message);
     } catch (error) {
       // Skip invalid dates
-      console.error(`[MessageList] Error processing message at index ${index}:`, error, message);
+      logger.error(`[MessageList] Error processing message at index ${index}`, error as Error, {
+        message,
+        index,
+      });
       return groups;
     }
     return groups;
@@ -192,7 +204,7 @@ function MessageList({
           // Sort dates in ascending order (oldest first)
           return new Date(dateA).getTime() - new Date(dateB).getTime();
         })
-        .filter(([date, messages]: any) => {
+        .filter(([date]: [string, Message[]]) => {
           // Validate entry before processing
           if (!date || typeof date !== 'string') return false;
           if (!Array.isArray(messages)) return false;
@@ -202,7 +214,7 @@ function MessageList({
             msg && typeof msg === 'object' && msg.createdAt && (msg.id || msg._id)
           );
         })
-        .map(([date, messages]: any) => (
+        .map(([date, messages]: [string, Message[]]) => (
         <Box 
           key={date} 
           mb={{ base: 3, md: 4 }}
@@ -263,8 +275,8 @@ function MessageList({
                   return a.createdAt < b.createdAt ? -1 : 1;
                 });
               
-              const lastReadIndex = sortedMessages.findIndex((m: Message) => m.id === lastReadMessageId);
-              const hasUnreadMessages = lastReadIndex >= 0 && lastReadIndex < sortedMessages.length - 1;
+              // Show divider only at firstUnreadMessageId (from API response)
+              // This is the first message that the user hasn't read
               
               return sortedMessages
                 .filter((msg: Message) => {
@@ -277,17 +289,20 @@ function MessageList({
                   if (!message || typeof message !== 'object') return null;
                   if (!message.id && !message._id) return null;
                   if (!message.createdAt) return null;
-                  const isLastRead = message.id === lastReadMessageId && hasUnreadMessages;
+                  // Normalize message ID: use id or _id consistently
+                  const messageId = message.id || message._id;
+                  // Show divider above the first unread message
+                  const isFirstUnread = firstUnreadMessageId && messageId === firstUnreadMessageId;
                   return (
                     <Box 
-                      key={message.id || `msg-${index}`} 
-                      data-message-id={message.id}
+                      key={messageId || `msg-${index}`} 
+                      data-message-id={messageId}
                       w="100%"
                       minH="auto"
                       overflow="visible"
                       sx={{ 
                         contain: 'layout style', // Less aggressive containment to prevent cutoffs
-                        willChange: isLastRead ? 'transform' : 'auto',
+                        willChange: isFirstUnread ? 'transform' : 'auto',
                         backfaceVisibility: 'hidden',
                       }}
                     >
@@ -296,7 +311,7 @@ function MessageList({
                         messages={sortedMessages.filter((m: Message) => m && m.id && m.createdAt)}
                         index={index}
                       />
-                    {isLastRead && (
+                    {isFirstUnread && (
                       <Box
                         ref={lastReadMessageRef}
                         position="relative"
@@ -352,6 +367,19 @@ function MessageList({
           </Box>
         </Box>
       ))}
+      
+      {/* Trigger for loading newer messages when scrolling down (at bottom) */}
+      {loadNewerTriggerRef && (
+        <Box
+          ref={loadNewerTriggerRef}
+          h="20px"
+          w="100%"
+          minH="20px"
+          flexShrink={0}
+          position="relative"
+          aria-hidden="true"
+        />
+      )}
     </Box>
   );
 }

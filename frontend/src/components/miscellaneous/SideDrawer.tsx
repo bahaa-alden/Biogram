@@ -30,7 +30,7 @@ import {
   VStack
 } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   BellIcon,
@@ -47,10 +47,11 @@ import { useSocket } from '../../hooks/useSocket';
 import { chatService } from '../../services/api/chat.service';
 import { notificationService } from '../../services/api/notification.service';
 import { userService } from '../../services/api/user.service';
-import { Notification, User } from '../../types/interfaces';
+import { Chat, Message, Notification, User } from '../../types/interfaces';
 import { storage } from '../../utils/storage';
 import UserListItem from '../UserAvatar/UserListItems';
 import ProfileModel from './ProfileModel';
+import logger from '../../utils/logger';
 
 interface SideDrawerProps {
   bg: string;
@@ -64,6 +65,7 @@ function SideDrawer({
   fetchNotificationsAgain,
   setFetchNotificationsAgain,
 }: SideDrawerProps) {
+  const navigate = useNavigate();
   const {
     user,
     selectedChat,
@@ -83,32 +85,64 @@ function SideDrawer({
   const { data: notifications, isLoading, refetch } = useNotifications(user?.id, { read: false });
   const toast = useToast();
   const { colorMode, toggleColorMode } = useColorMode();
+  
+  // Track last refetch time to debounce
+  const lastRefetchTimeRef = useRef<number>(0);
+  const refetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchNotifications = async () => {
-    try {
-      refetch();
-    } catch (error) {}
-  };
+  const fetchNotifications = useCallback(async () => {
+    const now = Date.now();
+    const timeSinceLastRefetch = now - lastRefetchTimeRef.current;
+    
+    // Debounce: max once per 2 seconds
+    if (timeSinceLastRefetch < 2000) {
+      // Clear any existing timeout and schedule a new one
+      if (refetchTimeoutRef.current) {
+        clearTimeout(refetchTimeoutRef.current);
+      }
+      refetchTimeoutRef.current = setTimeout(() => {
+        lastRefetchTimeRef.current = Date.now();
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      }, 2000 - timeSinceLastRefetch);
+      return;
+    }
+    
+    // Refetch immediately if enough time has passed
+    lastRefetchTimeRef.current = now;
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  }, [queryClient]);
   
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotificationsAgain]);
+    if (fetchNotificationsAgain) {
+      fetchNotifications();
+    }
+  }, [fetchNotificationsAgain, fetchNotifications]);
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (refetchTimeoutRef.current) {
+        clearTimeout(refetchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Listen for real-time notification updates via socket
   useEffect(() => {
     if (!socket || !user?.id) return;
 
     const handleNewNotification = () => {
-      // Refetch notifications when a new notification is received
-      fetchNotifications();
+      // Invalidate queries when a new notification is received (React Query will refetch)
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     };
 
-    const handleMessageReceived =async (newMessage: any) => {
+    const handleMessageReceived = async (newMessage: Message) => {
       // Check if message is for a chat that's not currently selected
-      if(selectedChat?.id === newMessage.chat.id) {
-        await notificationService.markNotificationRead(newMessage.chat.id);
+      if(newMessage.chat && selectedChat?.id === newMessage.chat.id) {
+        await notificationService.markNotificationRead(newMessage.chat.id!);
       }
-      await queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      // Invalidate queries instead of manual refetch
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     };
 
     socket.on('notification', handleNewNotification);
@@ -141,10 +175,11 @@ function SideDrawer({
       
       // Refresh notifications
       setFetchNotificationsAgain(!fetchNotificationsAgain);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       toast({
         title: 'Failed to mark notifications as read',
-        description: error.response?.data?.message || 'An error occurred',
+        description: err.response?.data?.message || 'An error occurred',
         status: 'error',
         duration: 3000,
         position: 'bottom',
@@ -171,10 +206,11 @@ function SideDrawer({
       const response = await userService.getUsers({ search: search.trim() });
       const data = response.data.data;
       setSearchResult(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
       toast({
         title: 'Failed to load the search result',
-        description: err.response?.data?.message || 'An error occurred',
+        description: error.response?.data?.message || 'An error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -191,23 +227,22 @@ function SideDrawer({
       const response = await chatService.createChat({ userId: userInfo.id });
       
       // Handle both response structures from backend:
-      // - New chat (201): { status: 'success', data: chat }
+      // - New chat (201): { status: 'success', data: { data: chat } }
       // - Existing chat (200): { data: chat }
-      // chatService.createChat returns response.data from axios, which could be either structure
-      let chatData: any;
+      let chatData: Chat | null = null;
       
       // Check if response has status field (new chat)
       if (response.status === 'success' && response.data) {
-        // New chat: { status: 'success', data: chat }
-        chatData = response.data;
+        // New chat: { status: 'success', data: { data: chat } }
+        const responseData = response.data as { data?: Chat } | Chat;
+        chatData = 'data' in responseData && responseData.data ? responseData.data : (responseData as Chat);
       } else if (response.data) {
         // Existing chat: { data: chat }
-        chatData = response.data;
-      } else {
-        throw new Error('Invalid chat data received');
+        const responseData = response.data as { data?: Chat } | Chat;
+        chatData = 'data' in responseData && responseData.data ? responseData.data : (responseData as Chat);
       }
 
-      if (!chatData || !chatData.id) {
+      if (!chatData || (!chatData.id && !chatData._id)) {
         throw new Error('Invalid chat data: missing id');
       }
 
@@ -219,17 +254,25 @@ function SideDrawer({
       // Invalidate and refetch chats list
       queryClient.invalidateQueries({ queryKey: ['chats'] });
       
+      // Navigate to chat URL
+      const chatId = chatData.id || chatData._id;
+      if (chatId) {
+        navigate(`/chats/${chatId}`);
+      }
+      
       // Set the selected chat directly (no intermediate empty state)
       setSelectedChat(chatData);
       
       onClose();
       setSearchResult([]);
       setSearch('');
-    } catch (err: any) {
-      console.error('Error creating/accessing chat:', err);
+
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      logger.error('Error creating/accessing chat', err as Error);
       toast({
         title: 'Error fetching the chat',
-        description: err.response?.data?.message || err.message || 'An error occurred',
+        description: error.response?.data?.message || error.message || 'An error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -405,7 +448,7 @@ function SideDrawer({
                           // Refresh notifications
                           setFetchNotificationsAgain(!fetchNotificationsAgain);
                         } catch (error) {
-                          console.error('Failed to mark notification as read:', error);
+                          logger.error('Failed to mark notification as read', error as Error);
                         }
                       }
 

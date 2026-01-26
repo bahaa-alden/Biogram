@@ -1,29 +1,39 @@
 import { NextFunction, Request, Response } from 'express';
-import { Model } from 'mongoose';
+import { Document, Model, PopulateOptions } from 'mongoose';
 import APIFeatures from '../utils/apiFeatures';
 import AppError from '../utils/appError';
 import catchAsync from '../utils/catchAsync';
 
-export const deleteOne = (Model: Model<any>) =>
+/**
+ * Delete a document by ID
+ */
+export const deleteOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const doc = await Model.findByIdAndRemove(req.params.id);
-    const modelName = `${Model.modelName.toLowerCase()}`;
+    const doc = await Model.findByIdAndDelete(req.params.id);
+    const modelName = Model.modelName.toLowerCase();
+    
     if (!doc) {
       return next(new AppError(404, `No ${modelName} found with that ID`));
     }
+    
     res.status(204).json({ status: 'success', data: null });
   });
 
-export const updateOne = (Model: Model<any>) =>
+/**
+ * Update a document by ID
+ */
+export const updateOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
-    const modelName = `${Model.modelName.toLowerCase()}`;
+    const modelName = Model.modelName.toLowerCase();
+    
     if (!doc) {
       return next(new AppError(404, `No ${modelName} found with that ID`));
     }
+    
     res.status(200).json({
       status: 'success',
       data: {
@@ -32,7 +42,10 @@ export const updateOne = (Model: Model<any>) =>
     });
   });
 
-export const createOne = (Model: Model<any>) =>
+/**
+ * Create a new document
+ */
+export const createOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const newDoc = await Model.create(req.body);
 
@@ -44,16 +57,29 @@ export const createOne = (Model: Model<any>) =>
     });
   });
 
-export const getOne = (Model: Model<any>, ...popOptions: Array<any>) =>
+/**
+ * Get a single document by ID with optional population
+ */
+export const getOne = <T extends Document>(
+  Model: Model<T>,
+  ...popOptions: PopulateOptions[]
+) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const query = Model.findById(req.params.id);
-    if (popOptions) query.populate(popOptions);
+    let query: any = Model.findById(req.params.id);
+    
+    if (popOptions && popOptions.length > 0) {
+      popOptions.forEach((pop) => {
+        query = query.populate(pop);
+      });
+    }
+    
     const doc = await query;
-    const modelName = `${Model.modelName.toLowerCase()}`;
+    const modelName = Model.modelName.toLowerCase();
 
     if (!doc) {
       return next(new AppError(404, `No ${modelName} with that ID`));
     }
+    
     res.status(200).json({
       status: 'success',
       data: {
@@ -62,12 +88,22 @@ export const getOne = (Model: Model<any>, ...popOptions: Array<any>) =>
     });
   });
 
-export const getAll = (Model: Model<any>, isNotification: boolean = false) =>
+/**
+ * Get all documents with filtering, sorting, and pagination
+ */
+export const getAll = <T extends Document>(
+  Model: Model<T>,
+  isNotification: boolean = false
+) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    //small hack
-    let filter: any = {};
-    if (req.params.userId) filter.user = req.params.userId;
-    if (req.params.chatId) filter.chat = req.params.chatId;
+    const filter: Record<string, unknown> = {};
+    
+    if (req.params.userId) {
+      filter.user = req.params.userId;
+    }
+    if (req.params.chatId) {
+      filter.chat = req.params.chatId;
+    }
 
     const query =
       Model.modelName === 'User'
@@ -79,31 +115,38 @@ export const getAll = (Model: Model<any>, isNotification: boolean = false) =>
       .sort()
       .limitFields()
       .paginate()
-      .search(req.querySearch);
+      .search(req.querySearch || {});
 
-    // [Model.modelName.toLowerCase() + 's']
     let docs = await feature.query;
+    
     if (isNotification) {
-      docs = docs.map((doc: any) => {
-        if (doc.chat.isGroup) {
-          doc = { ...doc.toObject(), name: doc.chat.name };
-          doc = { ...doc, chatAdmin: doc.chat.groupAdmin?.name?.split(' ')[0] };
-        } else {
-          doc = {
-            ...doc.toObject(),
-            receiverName:
-              req.user.id === doc.chat.users[0].id
-                ? doc.chat.users[1]?.name || 'Unknown'
-                : doc.chat.users[0]?.name || 'Unknown',
+      docs = docs.map((doc: T & { chat?: { isGroup?: boolean; name?: string; groupAdmin?: { name?: string }; users?: Array<{ id?: string; name?: string }> } }) => {
+        const docObj = doc.toObject();
+        
+        if (doc.chat?.isGroup) {
+          return {
+            ...docObj,
+            name: doc.chat.name,
+            chatAdmin: doc.chat.groupAdmin?.name?.split(' ')[0],
           };
         }
-        return doc;
+        
+        const receiverName =
+          req.user?.id === doc.chat?.users?.[0]?.id
+            ? doc.chat.users[1]?.name || 'Unknown'
+            : doc.chat?.users?.[0]?.name || 'Unknown';
+            
+        return {
+          ...docObj,
+          receiverName,
+        };
       });
     }
+    
     if (req.query.reverse) {
       docs.reverse();
     }
-    //Send Response
+    
     res.status(200).json({
       status: 'success',
       result: docs.length,

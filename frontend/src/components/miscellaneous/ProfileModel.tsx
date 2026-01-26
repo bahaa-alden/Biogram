@@ -27,6 +27,7 @@ import {
 import { Fragment, useEffect, useState } from 'react';
 import { chatState } from '../../Context/ChatProvider';
 import { userService } from '../../services/api/user.service';
+import logger from '../../utils/logger';
 
 function ProfileModel({ userInfo, children }: any) {
   const { user, setUser } = chatState();

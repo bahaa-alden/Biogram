@@ -8,6 +8,13 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface ApiError {
+  status: 'error' | 'fail';
+  message: string;
+  error?: Error | string;
+  statusCode?: number;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
@@ -62,5 +69,37 @@ export interface SearchUsersParams {
 export interface GetMessagesParams {
   page?: number;
   limit?: number;
+  cursor?: string;
+  direction?: 'before' | 'after' | 'around';
+  centerCursor?: string;
+  before?: number; // Number of messages to fetch before center (for 'around' direction)
+  after?: number; // Number of messages to fetch after center (for 'around' direction)
+}
+
+export interface CursorPaginationResponse {
+  nextCursor?: string | null;
+  previousCursor?: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage?: boolean;
+  hasMoreBefore?: boolean;
+  hasMoreAfter?: boolean;
+}
+
+export interface CursorPaginatedMessagesResponse {
+  messages: Message[];
+  unreadCount: number;
+  firstUnreadMessageId: string | null;
+  centerMessageIdUsed?: string; // The actual center message ID used (may differ if center invalid)
+  pagination: CursorPaginationResponse;
+}
+
+export interface ReadStateResponse {
+  centerMessageId: string | null;
+  lastSeenMessageId: string | null;
+  lastSeenAt: string | null;
+}
+
+export interface CenterMessageResponse {
+  centerMessageId: string | null;
 }
 

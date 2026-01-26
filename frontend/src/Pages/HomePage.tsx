@@ -23,7 +23,6 @@ function HomePage() {
   const bg = useColorModeValue('white', 'gray.800');
   const bgS = useColorModeValue('brand.500', 'brand.400');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const headingColor = useColorModeValue('brand.600', 'brand.300');
   const subHeadingColor = useColorModeValue('gray.600', 'gray.400');
 
   return (

@@ -249,6 +249,90 @@ const options: swaggerJsdoc.Options = {
             },
           },
         },
+        CursorPaginationResponse: {
+          type: 'object',
+          properties: {
+            messages: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/Message',
+              },
+              description: 'Array of messages in chronological order (oldest first)',
+            },
+            unreadCount: {
+              type: 'integer',
+              description: 'Number of unread messages in the returned set',
+              example: 5,
+            },
+            firstUnreadMessageId: {
+              type: 'string',
+              nullable: true,
+              description: 'ID of the first unread message in the returned set',
+            },
+            pagination: {
+              type: 'object',
+              properties: {
+                nextCursor: {
+                  type: 'string',
+                  nullable: true,
+                  description: 'Cursor for loading older messages (scroll up)',
+                },
+                previousCursor: {
+                  type: 'string',
+                  nullable: true,
+                  description: 'Cursor for loading newer messages (scroll down)',
+                },
+                hasNextPage: {
+                  type: 'boolean',
+                  description: 'Whether there are more older messages available',
+                },
+                hasPreviousPage: {
+                  type: 'boolean',
+                  description: 'Whether there are more newer messages available',
+                },
+                hasMoreBefore: {
+                  type: 'boolean',
+                  description: 'Whether there are more messages before the loaded range (for around direction)',
+                },
+                hasMoreAfter: {
+                  type: 'boolean',
+                  description: 'Whether there are more messages after the loaded range (for around direction)',
+                },
+                oldestCursor: {
+                  type: 'string',
+                  nullable: true,
+                  description: 'Cursor for the oldest message in the returned set',
+                },
+                newestCursor: {
+                  type: 'string',
+                  nullable: true,
+                  description: 'Cursor for the newest message in the returned set',
+                },
+              },
+            },
+          },
+        },
+        ReadStateResponse: {
+          type: 'object',
+          properties: {
+            lastSeenMessageId: {
+              type: 'string',
+              nullable: true,
+              description: 'ID of the last message the user has read',
+            },
+            lastSeenAt: {
+              type: 'string',
+              format: 'date-time',
+              nullable: true,
+              description: 'Timestamp when the user last read messages',
+            },
+            centerMessageId: {
+              type: 'string',
+              nullable: true,
+              description: 'ID of the message in the center of the viewport (for scroll restoration)',
+            },
+          },
+        },
         ErrorResponse: {
           type: 'object',
           properties: {

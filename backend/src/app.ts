@@ -2,6 +2,7 @@
 import swaggerSpec from '@config/swagger';
 import { globalErrorHandler, notFound } from '@middlewares/error.middleware';
 import JWTStrategy from '@middlewares/passport.config';
+import { securityHeaders } from '@middlewares/security.middleware';
 import routes from '@routes/index.routes';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -24,19 +25,45 @@ import swaggerUi from 'swagger-ui-express';
 
 const app: express.Application = express();
 
-// CORS configuration - allow all origins
+// CORS configuration - environment-based
 const corsOptions = {
-  origin: true, // Allow all origins
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    // Allow requests with no origin (like mobile apps, Postman, or same-origin requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (settings.NODE_ENV === 'production') {
+      // In production, only allow the frontend URL
+      const allowedOrigins = settings.FRONTEND_URL 
+        ? [settings.FRONTEND_URL] 
+        : [];
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    } else {
+      // In development, allow all origins
+      callback(null, true);
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200,
+  preflightContinue: false,
 };
 
 //middlewares
+// Apply CORS before security headers to ensure preflight requests are handled
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+app.use(securityHeaders);
 app.use(express.static(path.join(__dirname, '..', 'public')));
 // Configure helmet to allow WebSocket connections and CORS
 app.use(
@@ -53,14 +80,32 @@ if (settings.NODE_ENV === 'development') {
 }
 app.disable('x-powered-by');
 
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!',
+// Rate limiting configuration
+// const generalLimiter = rateLimit({
+//   max: 100, // 100 requests
+//   windowMs: 60 * 60 * 1000, // per hour
+//   message: 'Too many requests from this IP, please try again in an hour!',
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
+
+// Stricter rate limiting for auth endpoints
+const authLimiter = rateLimit({
+  max: 5, // 5 requests
+  windowMs: 15 * 60 * 1000, // per 15 minutes
+  message: 'Too many authentication attempts, please try again later!',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
-// app.use('/api', limiter);
+
+// Apply rate limiting
+// app.use('/api', generalLimiter);
+app.use('/api/v1/users/login', authLimiter);
+app.use('/api/v1/users/signup', authLimiter);
+app.use('/api/v1/users/forgotPassword', authLimiter);
+// Body parser with size limits
 app.use(json({ limit: '10kb' }));
-app.use(urlencoded({ extended: false }));
+app.use(urlencoded({ extended: false, limit: '10kb' }));
 app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(hpp());

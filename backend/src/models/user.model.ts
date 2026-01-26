@@ -4,8 +4,8 @@ import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { settings } from './../config/settings';
-import { UserModel, UserDoc, IUser } from '../types/user.type';
-const userSchema = new Schema<UserDoc, UserModel, any>(
+import { UserDoc, IUser } from '../types/user.type';
+const userSchema = new Schema<UserDoc, any, any>(
   {
     name: {
       type: String,
@@ -105,6 +105,6 @@ userSchema.methods.createSendToken = function (user: any) {
   return token;
 };
 
-const User = model<IUser>('User', userSchema);
+const User = model<UserDoc>('User', userSchema);
 
 export default User;

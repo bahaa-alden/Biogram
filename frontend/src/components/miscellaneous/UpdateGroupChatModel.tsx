@@ -1,16 +1,10 @@
-import { EditIcon, SearchIcon, ViewIcon } from '@chakra-ui/icons';
+import { ViewIcon } from '@chakra-ui/icons';
 import {
-  Badge,
   Box,
   Button,
   Divider,
-  FormControl,
-  FormHelperText,
   HStack,
   IconButton,
-  Input,
-  InputGroup,
-  InputLeftElement,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -18,7 +12,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Spinner,
   Text,
   Tooltip,
   useColorModeValue,
@@ -31,8 +24,10 @@ import { chatState } from '../../Context/ChatProvider';
 import { chatService } from '../../services/api/chat.service';
 import { userService } from '../../services/api/user.service';
 import { User } from '../../types/interfaces';
-import UserListItem from '../UserAvatar/UserListItems';
-import UserBadgeList from '../UserBadge/UserBadgeList';
+import logger from '../../utils/logger';
+import { AddMembersSection } from './AddMembersSection';
+import { GroupMembersSection } from './GroupMembersSection';
+import { RenameGroupSection } from './RenameGroupSection';
 
 function UpdateGroupChatModel({
   fetchAgain,
@@ -112,10 +107,11 @@ function UpdateGroupChatModel({
         setFetchAgain(!fetchAgain);
         socket.emit('group add', data);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      logger.error('Error adding user to group', err as Error);
       toast({
         title: 'Error Occurred',
-        description: err.response?.data?.message || 'Failed to add user to group',
+        description: (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to add user to group',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -134,10 +130,11 @@ function UpdateGroupChatModel({
       const response = await userService.getUsers({ search: search.trim() });
       const data = response.data.data;
       setSearchResult(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      logger.error('Error searching users', err as Error);
       toast({
         title: 'Error Occurred',
-        description: err.response?.data?.message || 'Failed to load the search result',
+        description: (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to load the search result',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -223,10 +220,11 @@ function UpdateGroupChatModel({
         // Update form with the new name
         setGroupName(data.name || trimmedName);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      logger.error('Error renaming group chat', err as Error);
       toast({
         title: 'Failed to rename the chat',
-        description: err?.response?.data?.message || 'An error occurred',
+        description: (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'An error occurred',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -267,10 +265,11 @@ function UpdateGroupChatModel({
           removedUser: userInfo.id,
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      logger.error('Error removing user from group', err as Error);
       toast({
         title: 'Error Occurred',
-        description: err.response?.data?.message || 'Failed to remove user from group',
+        description: (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to remove user from group',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -385,308 +384,36 @@ function UpdateGroupChatModel({
 
           <ModalBody py={6} px={{ base: 4, md: 6 }}>
             <VStack spacing={6} align="stretch">
-              {/* Members Section */}
-              <Box>
-                <HStack mb={3} justify="space-between" align="center">
-                  <HStack spacing={2}>
-                    <Box
-                      bg={useColorModeValue('brand.50', 'brand.900')}
-                      p={1.5}
-                      borderRadius="md"
-                    >
-                      <Text fontSize="sm">👥</Text>
-                    </Box>
-                    <Text
-                      fontSize="sm"
-                      fontWeight="700"
-                      color={textColor}
-                      textTransform="uppercase"
-                      letterSpacing="wide"
-                    >
-                      Group Members
-                    </Text>
-                  </HStack>
-                  <Badge
-                    bg={useColorModeValue('brand.100', 'brand.900')}
-                    color={useColorModeValue('brand.700', 'brand.200')}
-                    borderRadius="full"
-                    px={3}
-                    py={1}
-                    fontSize="xs"
-                    fontWeight="600"
-                  >
-                    {selectedChat?.users?.length} {selectedChat?.users?.length === 1 ? 'Member' : 'Members'}
-                  </Badge>
-                </HStack>
-                <Box
-                  bg={cardBg}
-                  p={4}
-                  borderRadius="lg"
-                  border="1px solid"
-                  borderColor={borderColor}
-                  minH="80px"
-                  transition="all 0.2s"
-                  _hover={{
-                    borderColor: useColorModeValue('brand.300', 'brand.500'),
-                    shadow: 'sm',
-                  }}
-                >
-                  {selectedChat?.users && selectedChat.users.length > 0 ? (
-                    <UserBadgeList
-                      users={selectedChat.users}
-                      handleFunction={handleRemove}
-                      isCreate={isCreate}
-                    />
-                  ) : (
-                    <Text color={secondaryTextColor} textAlign="center" py={2}>
-                      No members in this group
-                    </Text>
-                  )}
-                </Box>
-              </Box>
+              <GroupMembersSection
+                selectedChat={selectedChat!}
+                onRemoveUser={handleRemove}
+                isCreate={isCreate}
+              />
 
               <Divider />
 
-              {/* Rename Group Section */}
-              <Box>
-                <HStack justify="space-between" mb={3} align="center">
-                  <HStack spacing={2}>
-                    <Box
-                      bg={useColorModeValue('brand.50', 'brand.900')}
-                      p={1.5}
-                      borderRadius="md"
-                    >
-                      <Text fontSize="sm">✏️</Text>
-                    </Box>
-                    <Text
-                      fontSize="sm"
-                      fontWeight="700"
-                      color={textColor}
-                      textTransform="uppercase"
-                      letterSpacing="wide"
-                    >
-                      Rename Group
-                    </Text>
-                  </HStack>
-                  <Text
-                    fontSize="xs"
-                    color={groupName.length > 45 ? 'red.500' : secondaryTextColor}
-                    fontWeight="600"
-                    bg={groupName.length > 45 ? useColorModeValue('red.50', 'red.900') : 'transparent'}
-                    px={2}
-                    py={0.5}
-                    borderRadius="md"
-                  >
-                    {groupName.length}/50
-                  </Text>
-                </HStack>
-                <FormControl>
-                  <HStack spacing={3}>
-                    <InputGroup flex={1}>
-                      <InputLeftElement pointerEvents="none">
-                        <EditIcon 
-                          color={secondaryTextColor} 
-                          boxSize={4}
-                        />
-                      </InputLeftElement>
-                      <Input
-                        value={groupName}
-                        placeholder={selectedChat?.name || 'Enter group name...'}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value.length <= 50) {
-                            setGroupName(value);
-                          }
-                        }}
-                        bg={cardBg}
-                        border="1px solid"
-                        borderColor={
-                          groupName.length > 45 
-                            ? useColorModeValue('red.300', 'red.600')
-                            : borderColor
-                        }
-                        _hover={{ 
-                          borderColor: groupName.length > 45
-                            ? useColorModeValue('red.400', 'red.500')
-                            : useColorModeValue('brand.400', 'brand.500'),
-                          bg: hoverBg,
-                        }}
-                        _focus={{ 
-                          borderColor: groupName.length > 45
-                            ? useColorModeValue('red.500', 'red.400')
-                            : inputFocusBorder, 
-                          boxShadow: `0 0 0 1px ${groupName.length > 45 ? 'red.500' : 'var(--chakra-colors-brand-500)'}`,
-                          bg: bgColor,
-                        }}
-                        maxLength={50}
-                        isDisabled={renameLoading}
-                        size="md"
-                        borderRadius="lg"
-                      />
-                    </InputGroup>
-                    <Button
-                      colorScheme="brand"
-                      isLoading={renameLoading}
-                      loadingText="Updating..."
-                      onClick={handleRename}
-                      px={6}
-                      fontWeight="600"
-                      size="md"
-                      borderRadius="lg"
-                      isDisabled={
-                        !groupName.trim() || 
-                        groupName.trim() === selectedChat?.name ||
-                        groupName.length > 50
-                      }
-                      _hover={{
-                        transform: !renameLoading ? 'translateY(-1px)' : 'none',
-                        shadow: 'md',
-                      }}
-                      transition="all 0.2s"
-                    >
-                      Save
-                    </Button>
-                  </HStack>
-                  {groupName.trim() && groupName.trim() !== selectedChat?.name && groupName.length <= 50 && (
-                    <FormHelperText mt={2} fontSize="xs" color="green.500">
-                      ✓ Ready to update group name
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Box>
+              <RenameGroupSection
+                groupName={groupName}
+                setGroupName={setGroupName}
+                selectedChat={selectedChat}
+                onRename={handleRename}
+                renameLoading={renameLoading}
+              />
 
               {selectedChat?.isGroup && user?.id === selectedChat?.groupAdmin?.id && (
                 <Fragment>
                   <Divider />
 
-                  {/* Add Members Section */}
-                  <Box>
-                    <HStack spacing={2} mb={3}>
-                      <Box
-                        bg={useColorModeValue('brand.50', 'brand.900')}
-                        p={1.5}
-                        borderRadius="md"
-                      >
-                        <Text fontSize="sm">➕</Text>
-                      </Box>
-                      <Text
-                        fontSize="sm"
-                        fontWeight="700"
-                        color={textColor}
-                        textTransform="uppercase"
-                        letterSpacing="wide"
-                      >
-                        Add New Members
-                      </Text>
-                    </HStack>
-                    <InputGroup mb={4}>
-                      <InputLeftElement pointerEvents="none" h="full">
-                        <SearchIcon 
-                          color={secondaryTextColor} 
-                          boxSize={4}
-                        />
-                      </InputLeftElement>
-                      <Input
-                        value={search}
-                        placeholder="Search users by name or email..."
-                        onChange={(e) => setSearch(e.target.value)}
-                        bg={cardBg}
-                        border="1px solid"
-                        borderColor={borderColor}
-                        _hover={{ 
-                          borderColor: useColorModeValue('brand.400', 'brand.500'),
-                          bg: hoverBg,
-                        }}
-                        _focus={{ 
-                          borderColor: inputFocusBorder, 
-                          boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)',
-                          bg: bgColor,
-                        }}
-                        size="md"
-                        borderRadius="lg"
-                      />
-                    </InputGroup>
-
-                    {loading ? (
-                      <Box 
-                        display="flex" 
-                        justifyContent="center" 
-                        py={8}
-                        bg={cardBg}
-                        borderRadius="lg"
-                        border="1px dashed"
-                        borderColor={borderColor}
-                      >
-                        <VStack spacing={3}>
-                          <Spinner
-                            size="xl"
-                            color="brand.500"
-                            thickness="4px"
-                            speed="0.65s"
-                          />
-                          <Text fontSize="sm" color={secondaryTextColor} fontWeight="500">
-                            Searching users...
-                          </Text>
-                        </VStack>
-                      </Box>
-                    ) : search && searchResult.length > 0 ? (
-                      <Box
-                        bg={cardBg}
-                        borderRadius="lg"
-                        border="1px solid"
-                        borderColor={borderColor}
-                        maxH="280px"
-                        overflowY="auto"
-                        transition="all 0.2s"
-                        _hover={{
-                          borderColor: useColorModeValue('brand.300', 'brand.500'),
-                          shadow: 'sm',
-                        }}
-                      >
-                        <UserListItem
-                          users={searchResult.slice(0, 4)}
-                          handleFunction={handleAddUser}
-                          loadingChat={loadingChat}
-                          isClicked={isClicked}
-                          setIsClicked={setIsClicked}
-                        />
-                      </Box>
-                    ) : search && searchResult.length === 0 ? (
-                      <Box
-                        bg={cardBg}
-                        borderRadius="lg"
-                        border="1px dashed"
-                        borderColor={borderColor}
-                        p={8}
-                        textAlign="center"
-                      >
-                        <Text fontSize="2xl" mb={2}>🔍</Text>
-                        <Text color={textColor} fontWeight="600" mb={1}>
-                          No users found
-                        </Text>
-                        <Text fontSize="sm" color={secondaryTextColor}>
-                          Try searching with a different name or email
-                        </Text>
-                      </Box>
-                    ) : (
-                      <Box
-                        bg={cardBg}
-                        borderRadius="lg"
-                        border="1px dashed"
-                        borderColor={borderColor}
-                        p={8}
-                        textAlign="center"
-                      >
-                        <Text fontSize="2xl" mb={2}>👥</Text>
-                        <Text color={textColor} fontWeight="600" mb={1}>
-                          Search for users
-                        </Text>
-                        <Text fontSize="sm" color={secondaryTextColor}>
-                          Type a name or email to find users to add
-                        </Text>
-                      </Box>
-                    )}
-                  </Box>
+                  <AddMembersSection
+                    search={search}
+                    setSearch={setSearch}
+                    searchResult={searchResult}
+                    loading={loading}
+                    onAddUser={handleAddUser}
+                    loadingChat={loadingChat}
+                    isClicked={isClicked}
+                    setIsClicked={setIsClicked}
+                  />
                 </Fragment>
               )}
             </VStack>

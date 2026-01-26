@@ -6,6 +6,7 @@ export interface IMessage {
   content: string;
   sender: PopulatedDoc<Document<ObjectId> & IUser>;
   chat: IChat & PopulatedDoc<Document<ObjectId> & IChat>;
+  readers?: PopulatedDoc<Document<ObjectId> & IUser>[];
 }
 
 export type MessageDoc = IMessage & Document;

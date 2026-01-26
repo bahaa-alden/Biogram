@@ -1,4 +1,4 @@
-import { User } from '../types/interfaces';
+import { User, Message } from '../types/interfaces';
 
 export const getSender = (loggedUser: User, users: User[]): string => {
   if (!users || users.length === 0) return 'Unknown';
@@ -12,63 +12,63 @@ export const getSenderFull = (loggedUser: User, users: User[]): User | null => {
   return loggedUser.id === users[0]?.id ? (users[1] || null) : (users[0] || null);
 };
 
-export const isSameSender = (messages: any, m: any, i: any, userId: any) => {
+export const isSameSender = (messages: Message[], m: Message, i: number, userId: string | undefined): boolean => {
   if (!m?.sender || !messages || i >= messages.length) return false;
   return (
     i < messages.length - 1 &&
     messages[i + 1]?.sender &&
-    (messages[i + 1].sender.id !== m.sender.id ||
+    (String(messages[i + 1].sender.id || messages[i + 1].sender._id) !== String(m.sender.id || m.sender._id) ||
       messages[i + 1].sender.id === undefined) &&
-    messages[i].sender?.id !== userId
+    String(messages[i].sender?.id || messages[i].sender?._id) !== String(userId)
   );
 };
-export const isLastMessage = (messages: any, i: any, userId: any) => {
+export const isLastMessage = (messages: Message[], i: number, userId: string | undefined): boolean => {
   if (!messages || messages.length === 0) return false;
   return (
     i === messages.length - 1 &&
     messages[messages.length - 1]?.sender &&
-    messages[messages.length - 1].sender.id !== userId
+    String(messages[messages.length - 1].sender.id || messages[messages.length - 1].sender._id) !== String(userId)
   );
 };
-export const showSenderName = (messages: any, m: any, i: any, userId: any) => {
+export const showSenderName = (messages: Message[], m: Message, i: number, userId: string | undefined): boolean => {
   if (!m?.sender) return false;
   return (
-    (!messages[i - 1] || !messages[i - 1]?.sender || messages[i - 1].sender.id !== m.sender.id) &&
-    m.sender.id !== userId
+    (!messages[i - 1] || !messages[i - 1]?.sender || String(messages[i - 1].sender.id || messages[i - 1].sender._id) !== String(m.sender.id || m.sender._id)) &&
+    String(m.sender.id || m.sender._id) !== String(userId)
   );
 };
 
 export const isSameSenderMargin = (
-  messages: any,
-  m: any,
-  i: any,
-  userId: any,
-  isGroup: any
-) => {
+  messages: Message[],
+  m: Message,
+  i: number,
+  userId: string | undefined,
+  isGroup: boolean
+): number => {
   if (!m?.sender || !messages) return 0;
   if (
     i < messages.length - 1 &&
     messages[i + 1]?.sender &&
-    messages[i + 1].sender.id === m.sender.id &&
-    messages[i].sender?.id !== userId &&
+    String(messages[i + 1].sender.id || messages[i + 1].sender._id) === String(m.sender.id || m.sender._id) &&
+    String(messages[i].sender?.id || messages[i].sender?._id) !== String(userId) &&
     isGroup
   )
     return 37;
   else if (
     (i < messages.length - 1 &&
       messages[i + 1]?.sender &&
-      messages[i + 1].sender.id !== m.sender.id &&
-      messages[i].sender?.id !== userId) ||
-    (i === messages.length - 1 && messages[i]?.sender && messages[i].sender.id !== userId) ||
+      String(messages[i + 1].sender.id || messages[i + 1].sender._id) !== String(m.sender.id || m.sender._id) &&
+      String(messages[i].sender?.id || messages[i].sender?._id) !== String(userId)) ||
+    (i === messages.length - 1 && messages[i]?.sender && String(messages[i].sender.id || messages[i].sender._id) !== String(userId)) ||
     !isGroup
   ) {
     return 0;
   } else return 0;
 };
 
-export const isSameUser = (messages: any, m: any, i: any) => {
+export const isSameUser = (messages: Message[], m: Message, i: number): boolean => {
   if (!m?.sender || !messages || i <= 0) return false;
-  return messages[i - 1]?.sender && messages[i - 1].sender.id === m.sender.id;
+  return messages[i - 1]?.sender && String(messages[i - 1].sender.id || messages[i - 1].sender._id) === String(m.sender.id || m.sender._id);
 };
 
 export const getMessageTime = (myTime: Date) => {

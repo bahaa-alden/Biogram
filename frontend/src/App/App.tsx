@@ -6,6 +6,9 @@ import AuthenticatedRoute from '../utils/AuthenticatedRoute';
 import { useColorModeValue } from '@chakra-ui/react';
 import NotAuthenticatedRoute from '../utils/NotAuthenticatedRoute';
 
+/**
+ * Main App component with routing
+ */
 function App() {
   const bg = useColorModeValue('brand.50', 'dark.bg');
 
@@ -14,14 +17,16 @@ function App() {
       <Routes>
         <Route path="/">
           <Route element={<NotAuthenticatedRoute />}>
-            <Route path="" element={<HomePage />} />
+            <Route index element={<HomePage />} />
           </Route>
           <Route element={<AuthenticatedRoute />}>
             <Route path="chats" element={<ChatPage />} />
+            <Route path="chats/:chatId" element={<ChatPage />} />
           </Route>
         </Route>
       </Routes>
     </div>
   );
 }
+
 export default App;

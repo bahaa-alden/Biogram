@@ -63,7 +63,8 @@ function MessageItemComponent({ message, messages, index }: MessageItemProps) {
     return null;
   }
   
-  const isSender = user.id === message.sender.id;
+  // Compare IDs as strings to handle both string and ObjectId formats
+  const isSender = String(user.id) === String(message.sender.id || message.sender._id);
   const showAvatar = ((isSameSender(messages, message, index, user.id) &&
     selectedChat?.isGroup) ||
     (isLastMessage(messages, index, user.id) && selectedChat?.isGroup));

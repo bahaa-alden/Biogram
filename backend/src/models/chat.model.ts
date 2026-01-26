@@ -60,5 +60,16 @@ chatSchema.methods.createNotification = async function (users: any) {
     });
   });
 };
+
+// Compound indexes for performance optimization
+// Index for user chat queries (most common query)
+chatSchema.index({ users: 1, updatedAt: -1 });
+// Index for lastMessage lookups
+chatSchema.index({ lastMessage: 1 });
+// Index for group chat queries
+chatSchema.index({ isGroup: 1, updatedAt: -1 });
+// Index for group admin queries
+chatSchema.index({ groupAdmin: 1 });
+
 const Chat = model<ChatDoc>('Chat', chatSchema);
 export default Chat;

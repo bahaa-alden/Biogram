@@ -1,23 +1,26 @@
+import type { RefObject } from 'react';
 import { Message } from '../../types/interfaces';
 import MessageList from '../Message/MessageList';
 
 interface ScrollableChatProps {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: RefObject<HTMLDivElement>;
   messages: Message[];
-  loadMoreTriggerRef?: React.RefObject<HTMLDivElement>;
+  loadMoreTriggerRef?: RefObject<HTMLDivElement>;
+  loadNewerTriggerRef?: RefObject<HTMLDivElement>;
   isLoadingMore?: boolean;
   isEndOfMessages?: boolean;
-  lastReadMessageId?: string | null;
-  lastReadMessageRef?: React.RefObject<HTMLDivElement>;
+  firstUnreadMessageId?: string | null;
+  lastReadMessageRef?: RefObject<HTMLDivElement>;
 }
 
 function ScrollableChat({ 
   containerRef, 
   messages, 
-  loadMoreTriggerRef, 
+  loadMoreTriggerRef,
+  loadNewerTriggerRef,
   isLoadingMore,
   isEndOfMessages,
-  lastReadMessageId,
+  firstUnreadMessageId,
   lastReadMessageRef
 }: ScrollableChatProps) {
   // For now, use the existing MessageList component
@@ -26,10 +29,11 @@ function ScrollableChat({
     <MessageList
       containerRef={containerRef}
       loadMoreTriggerRef={loadMoreTriggerRef}
+      loadNewerTriggerRef={loadNewerTriggerRef}
       isLoadingMore={isLoadingMore}
       isEndOfMessages={isEndOfMessages}
       messages={messages}
-      lastReadMessageId={lastReadMessageId}
+      firstUnreadMessageId={firstUnreadMessageId}
       lastReadMessageRef={lastReadMessageRef}
     />
   );

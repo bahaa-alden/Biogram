@@ -35,56 +35,66 @@ apiClient.interceptors.request.use(
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  (error: unknown) => {
+    // Ignore cancelled requests
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+    
+    const axiosError = error as AxiosError;
+    
     // Handle network errors
-    if (!error.response) {
-      const networkError = {
-        ...error,
+    if (!axiosError.response) {
+      const networkError: AxiosError = {
+        ...axiosError,
         response: {
           status: 0,
+          statusText: 'Network Error',
+          headers: {},
+          config: axiosError.config || {} as InternalAxiosRequestConfig,
           data: {
             status: 'error',
             message: 'Network error. Please check your connection.',
           },
         },
-      };
+      } as AxiosError;
       return Promise.reject(networkError);
     }
 
     // Handle 401 Unauthorized
-    if (error.response?.status === 401) {
+    if (axiosError.response.status === 401) {
       storage.clearToken();
       // Only redirect if not already on login page
       if (window.location.pathname !== '/') {
         window.location.href = '/';
       }
-      return Promise.reject(error);
+      return Promise.reject(axiosError);
     }
 
     // Handle other errors - ensure error has proper structure
-    const errorResponse = error.response?.data as any;
+    const errorResponse = axiosError.response.data as any;
     if (!errorResponse || !errorResponse.message) {
-      const formattedError = {
-        ...error,
+      const formattedError: AxiosError = {
+        ...axiosError,
         response: {
-          ...error.response,
+          ...axiosError.response,
           data: {
             status: 'error',
             message:
-              error.response?.status === 500
+              axiosError.response.status === 500
                 ? 'Server error. Please try again later.'
-                : error.response?.status === 404
+                : axiosError.response.status === 404
                 ? 'Resource not found.'
-                : error.response?.status === 403
+                : axiosError.response.status === 403
                 ? 'You do not have permission to perform this action.'
-                : `Request failed with status ${error.response?.status}`,
+                : `Request failed with status ${axiosError.response.status}`,
           },
         },
-      };
+      } as AxiosError;
       return Promise.reject(formattedError);
     }
 
-    return Promise.reject(error);
+    return Promise.reject(axiosError);
   }
 );
 
